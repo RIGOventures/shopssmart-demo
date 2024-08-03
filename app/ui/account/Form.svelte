@@ -1,5 +1,5 @@
 <script>
-	import LoadingIndicator from './Loading.svelte';
+	import LoadingIndicator from '../Loading.svelte';
 
 	/**
 	 * @type string
