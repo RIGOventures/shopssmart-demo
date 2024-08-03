@@ -1,24 +1,14 @@
-export default function Component({ incomingStream }) {}
+export default function Component({ incomingStream }: { incomingStream: boolean }) {
+	return (<></>);
+}
 
 /**
 <script>
 	import LoadingIndicator from '../Loading.svelte';
 
-	/**
-	 * @type string
-	 */
 	export let cinemaType;
-	/**
-	 * @type Array<string>
-	 */
 	export let selectedCategories;
-	/**
-	 * @type string
-	 */
 	export let specificDescriptors;
-	/**
-	 * @type Boolean
-	 */
 	export let loading;
 
 	const categoryTypes = [

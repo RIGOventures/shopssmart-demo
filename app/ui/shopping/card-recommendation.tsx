@@ -1,5 +1,7 @@
 
-export default function Component({ incomingStream }) {}
+export default function Component({ incomingStream }: { incomingStream: boolean }) {
+	return (<></>);
+}
 
 /*
 <div>
