@@ -1,12 +1,7 @@
-/**
- * @type {{title: string, description: string}}
- */
-export let recommendation;
-
-async function getRecommendationInfo() {
-    const response = await fetch('/api/getMediaDetails', {
+async function getRecommendationInfo(item: string) {
+    const response = await fetch('/api/getDetails', {
         method: 'POST',
-        body: JSON.stringify({ title: recommendation.title }),
+        body: JSON.stringify({ item: item }),
         headers: {
             'content-type': 'application/json'
         }
