@@ -1,4 +1,7 @@
 
+export default function Component({ incomingStream }) {}
+
+/*
 <div>
 	{#await promise}
 		<LoadingCard incomingStream={false} />
@@ -169,3 +172,4 @@
 		</div>
 	{/await}
 </div>
+*/

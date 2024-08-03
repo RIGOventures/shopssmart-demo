@@ -1,3 +1,6 @@
+export default function Component({ incomingStream }) {}
+
+/**
 <script>
 	import LoadingIndicator from '../Loading.svelte';
 
@@ -148,3 +151,4 @@
 		</div>
 	</div>
 </div>
+*/

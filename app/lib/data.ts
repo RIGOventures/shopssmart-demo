@@ -1,5 +1,3 @@
-import { fade } from 'svelte/transition';
-import LoadingCard from './LoadingCard.svelte';
 /**
  * @type {{title: string, description: string}}
  */
@@ -17,5 +15,3 @@ async function getRecommendationInfo() {
 
     return recommendationDetails;
 }
-
-let promise = getRecommendationInfo();
