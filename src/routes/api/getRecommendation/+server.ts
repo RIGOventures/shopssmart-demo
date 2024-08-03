@@ -163,12 +163,14 @@ async function OpenAIStream(payload: OpenAIStreamPayload) {
 
 export async function POST({ request }: { request: any }) {
 	// Apply rate limit middleware
-	const rateLimitResult = await rateLimitMiddleware(request);
-	if (rateLimitResult) {
-		return rateLimitResult;
-	}
+	// const rateLimitResult = await rateLimitMiddleware(request);
+	// if (rateLimitResult) {
+	// 	return rateLimitResult;
+	// }
+
 	const { searched } = await request.json();
 	const payload = {
+		//model: 'gpt-4o-mini',
 		model: 'gpt-3.5-turbo',
 		messages: [{ role: 'user', content: searched }],
 		temperature: 0.7,
@@ -179,6 +181,7 @@ export async function POST({ request }: { request: any }) {
 		presence_penalty: 0.0,
 		n: 1
 	};
+
 	const stream = await OpenAIStream(payload);
 	return new Response(stream);
 }
