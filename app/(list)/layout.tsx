@@ -1,10 +1,13 @@
+import { SidebarDesktop } from '@/components/sidebar-desktop'
+
 interface ChatLayoutProps {
 	children: React.ReactNode
 }
 
 export default function Layout({ children }: ChatLayoutProps) {
 	return (
-		<div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
+		<div className="relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden">
+			<SidebarDesktop />
 			{children}
 		</div>
 	);

@@ -4,6 +4,7 @@ import { inter } from '@/app/fonts';
 
 import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
+import { Providers } from '@/components/providers'
 
 export const metadata = {
 	title: {
@@ -34,12 +35,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
 		<html lang="en">
 			<body className={`${inter.className} antialiased`}>
 				<Toaster position="top-center" />
-				<div className="flex flex-col min-h-screen">
-					<Header />
-					<main className="flex flex-col flex-1 bg-muted/50">
-						{children}
-					</main>
-				</div>
+				<Providers
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<div className="flex flex-col min-h-screen">
+						<Header />
+						<main className="flex flex-col flex-1 bg-muted/50">
+							{children}
+						</main>
+					</div>
+				</Providers>
 			</body>
 		</html>
 	);

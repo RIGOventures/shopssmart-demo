@@ -28,7 +28,7 @@ export async function ChatHistory({ userId }: ChatHistoryProps) {
                         'h-10 w-full justify-start bg-zinc-50 px-4 shadow-none transition-colors hover:bg-zinc-200/40 dark:bg-zinc-900 dark:hover:bg-zinc-300/10'
                     )}
                 >
-                    <PlusIcon className="-translate-x-2 stroke-2" />
+                    <PlusIcon className="size-6 -translate-x-2 stroke-2" />
                     New List
                 </Link>
             </div>
