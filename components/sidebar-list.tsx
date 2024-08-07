@@ -27,11 +27,11 @@ export async function SidebarChat({ userId }: SidebarListProps) {
                 <div className="flex-1 overflow-auto">
                     {chats?.length ? (
                         <div className="space-y-2 px-2">
-                        <SidebarItems chats={chats} />
+                            <SidebarItems chats={chats} />
                         </div>
                     ) : (
                         <div className="p-8 text-center">
-                        <p className="text-sm text-muted-foreground">No chat history</p>
+                        <p className="text-sm text-muted-foreground">No list history</p>
                         </div>
                     )}
                 </div>
