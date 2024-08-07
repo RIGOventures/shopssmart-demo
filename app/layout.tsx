@@ -1,16 +1,45 @@
-import '@/app/ui/global.css';
-import { inter } from '@/app/ui/fonts';
+import '@/app/global.css';
+
+import { inter } from '@/app/fonts';
+
+import { Header } from '@/components/header'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {
-	title: 'Smart Shop Demo',
-	description: 'Demo for the Smart Shop Concept',
+	title: {
+		template: `%s | Smart Shop`,
+		default: 'Smart Shop'
+	},
+	description: 'Demo for Smart Shop',
+	// Current website URL
+	metadataBase: new URL('https://smart-shop-demo.vercel.app'),
+	icons: {
+		icon: '/favicon.ico',
+	}
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const viewport = {
+	themeColor: [
+	  	{ media: '(prefers-color-scheme: light)', color: 'white' },
+	  	{ media: '(prefers-color-scheme: dark)', color: 'black' }
+	]
+  }
+
+interface RootLayoutProps {
+	children: React.ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
 	return (
 		<html lang="en">
 			<body className={`${inter.className} antialiased`}>
-				{children}
+				<Toaster position="top-center" />
+				<div className="flex flex-col min-h-screen">
+					<Header />
+					<main className="flex flex-col flex-1 bg-muted/50">
+						{children}
+					</main>
+				</div>
 			</body>
 		</html>
 	);
