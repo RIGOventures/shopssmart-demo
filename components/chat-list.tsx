@@ -1,3 +1,4 @@
+/*
 import { Message, Session } from '@/lib/types'
 
 import Link from 'next/link'
@@ -55,3 +56,4 @@ export function ChatList({ messages, session, isShared }: ChatList) {
         </div>
     )
 }
+*/

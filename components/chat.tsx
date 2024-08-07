@@ -1,5 +1,6 @@
 'use client'
 
+/*
 import { Message, Session } from '@/lib/types'
 
 import { cn } from '@/lib/utils'
@@ -88,3 +89,5 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
         </div>
     )
 }
+
+*/

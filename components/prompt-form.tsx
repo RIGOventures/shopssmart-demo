@@ -1,5 +1,6 @@
 'use client'
 
+/*
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
@@ -113,3 +114,5 @@ export function PromptForm({
     </form>
   )
 }
+
+*/

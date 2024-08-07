@@ -1,3 +1,4 @@
+/*
 import * as React from 'react'
 
 import { shareChat } from '@/app/actions'
@@ -83,3 +84,4 @@ export function ChatPanel({
         </div>
     )
 }
+*/
