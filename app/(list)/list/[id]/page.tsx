@@ -1,4 +1,4 @@
-import { Session } from '@/lib/types'
+import { Session, User } from '@/lib/types'
 import { type Metadata } from 'next'
 
 import { notFound, redirect } from 'next/navigation'
@@ -22,13 +22,14 @@ export async function generateMetadata({
         return {}
     }
 
-    const chat = await getChat(params.id, session.user.id)
+    let id = session.user!.id as string
+    const chat = await getChat(params.id, id)
 
     if (!chat || 'error' in chat) {
         redirect('/')
     } else {
         return {
-        title: chat?.title.toString().slice(0, 50) ?? 'Chat'
+            title: chat?.title.toString().slice(0, 50) ?? 'Chat'
         }
     }
 }
