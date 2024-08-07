@@ -22,7 +22,7 @@ export async function generateMetadata({
         return {}
     }
 
-    let id = session.user!.id as string
+    let id = session.user!.id ?? '';
     const chat = await getChat(params.id, id)
 
     if (!chat || 'error' in chat) {
