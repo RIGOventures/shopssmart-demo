@@ -69,10 +69,15 @@ export async function submitUserMessage(content: string) {
             //return rateLimitResult;
         }
     } catch (error) {
+
+        let message
+        if (error instanceof Error) message = error.message
+        else message = String(error)
+
 		return {
             type: 'error',
             resultCode: ResultCode.UnknownError,
-            message: error.toString()
+            message: message
         }
 	}
 
