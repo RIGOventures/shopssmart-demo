@@ -67,9 +67,6 @@ export function PromptForm({
 					}
 				])
 
-				// Create message
-				//const content = await createUserMessage(value)
-
 				// Submit and get response message
 				const responseMessage = await submitUserMessage(value)
 				setMessages(currentMessages => [...currentMessages, responseMessage])

@@ -10,6 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import Link from 'next/link'
 
 function getUserInitials(name: string) {
     const [firstName, lastName] = name.split(' ')
@@ -34,19 +35,31 @@ export function UserMenu({ user }: UserMenuProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent sideOffset={8} align="start" className="w-fit">
                 <DropdownMenuItem className="flex-col items-start">
-                    <div className="text-xs text-zinc-500">{user.email}</div>
+                    <div className="text-xs text-zinc-500">
+                        {user.email}
+                    </div>
                 </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
-                    <form
-                        action={async () => {
-                            'use server'
-                            await signOut()
-                        }}
-                    >
-                        <button className=" relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none transition-colors hover:bg-red-500 hover:text-white focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                            Sign Out
-                        </button>
-                    </form>
+
+                <DropdownMenuItem className="flex-col items-start">
+                    <Link href="/account" className="text-xs" >
+                        Account
+                    </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+                
+                <form
+                    action={async () => {
+                        'use server'
+                        await signOut()
+                    }}
+                >
+                    <button className=" relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none transition-colors hover:bg-red-500 hover:text-white focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                        Sign Out
+                    </button>
+                </form>
             </DropdownMenuContent>
         </DropdownMenu>
     </div>

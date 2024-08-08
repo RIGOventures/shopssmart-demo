@@ -21,13 +21,12 @@ import {
     nanoid
 } from '@/lib/utils'
 
-import { createUserMessage, submitUserMessage } from '@/lib/chat/actions'
+import { submitUserMessage } from '@/lib/chat/actions'
 
 import { BotMessage, UserMessage } from '@/components/chat/message'
 
 export const AI = createAI<AIState, UIState>({
     actions: {
-        createUserMessage,
         submitUserMessage
     },
     initialUIState: [],
@@ -75,7 +74,6 @@ export const AI = createAI<AIState, UIState>({
                 path
             }
 
-            console.log(chat)
             await saveChat(chat)
 
         } else {
