@@ -4,7 +4,8 @@ import { getMissingKeys } from '@/app/actions'
 import { nanoid } from '@/lib/utils'
 import { auth } from '@/auth'
 
-//import { Chat } from '@/components/chat'
+import { AI } from '../../lib/actions'
+import { Chat } from '@/components/chat'
 
 export const metadata = {
     title: 'Shopping'
@@ -16,7 +17,12 @@ export default async function Page() {
     const missingKeys = await getMissingKeys()
 
     return (
-        <></>
-        //<Chat id={id} session={session} missingKeys={missingKeys} />
+        <AI initialAIState={{ chatId: id, messages: [] }}>
+            <Chat 
+                id={id} 
+                session={session} 
+                missingKeys={missingKeys} 
+            />
+        </AI>
     )
 }

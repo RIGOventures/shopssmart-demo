@@ -1,6 +1,5 @@
 'use client'
 
-/*
 import { Message, Session } from '@/lib/types'
 
 import { cn } from '@/lib/utils'
@@ -25,32 +24,32 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, className, session, missingKeys }: ChatProps) {
-  const router = useRouter()
-  const path = usePathname()
-  const [input, setInput] = useState('')
-  const [messages] = useUIState()
-  const [aiState] = useAIState()
+    const router = useRouter()
+    const path = usePathname()
+    const [input, setInput] = useState('')
+    const [messages] = useUIState()
+    const [aiState] = useAIState()
 
-  const [_, setNewChatId] = useLocalStorage('newChatId', id)
+    const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
-  useEffect(() => {
-    if (session?.user) {
-        if (!path.includes('chat') && messages.length === 1) {
-            window.history.replaceState({}, '', `/chat/${id}`)
+    useEffect(() => {
+        if (session?.user) {
+            if (!path.includes('list') && messages.length === 1) {
+                window.history.replaceState({}, '', `/list/${id}`)
+            }
         }
-    }
-  }, [id, path, session?.user, messages])
+    }, [id, path, session?.user, messages])
 
-  useEffect(() => {
-    const messagesLength = aiState.messages?.length
-    if (messagesLength === 2) {
-        router.refresh()
-    }
-  }, [aiState.messages, router])
+    useEffect(() => {
+        const messagesLength = aiState.messages?.length
+        if (messagesLength === 2) {
+            router.refresh()
+        }
+    }, [aiState.messages, router])
 
-  useEffect(() => {
-        setNewChatId(id)
-  })
+    useEffect(() => {
+            setNewChatId(id)
+    })
 
     useEffect(() => {
         missingKeys.map(key => {
@@ -66,6 +65,13 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
             className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
             ref={scrollRef}
         >
+            <ChatPanel
+                id={id}
+                input={input}
+                setInput={setInput}
+                isAtBottom={isAtBottom}
+                scrollToBottom={scrollToBottom}
+            />
             <div
                 className={cn('pb-[200px] pt-4 md:pt-10', className)}
                 ref={messagesRef}
@@ -79,15 +85,6 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
                 }
                 <div className="w-full h-px" ref={visibilityRef} />
             </div>
-            <ChatPanel
-                id={id}
-                input={input}
-                setInput={setInput}
-                isAtBottom={isAtBottom}
-                scrollToBottom={scrollToBottom}
-            />
         </div>
     )
 }
-
-*/

@@ -4,6 +4,13 @@
 import { CoreMessage } from 'ai'
 import { ResultCode } from '@/lib/utils'
 
+/**
+type CoreUserMessage = {
+    role: string;
+    content: UserContent;
+};
+*/
+
 export type Message = CoreMessage & {
     id: string
 }
@@ -34,11 +41,6 @@ export interface User extends Record<string, any> {
     id: string
     email: string
     password: string
-}
-
-export interface UserRequestData {
-	count: number;
-	lastResetTime: number;
 }
 
 export interface Result {
