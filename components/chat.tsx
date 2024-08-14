@@ -42,13 +42,14 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
 
     useEffect(() => {
         const messagesLength = aiState.messages?.length
+        // User has sent a message
         if (messagesLength === 2) {
             router.refresh()
         }
     }, [aiState.messages, router])
 
     useEffect(() => {
-            setNewChatId(id)
+        setNewChatId(id)
     })
 
     useEffect(() => {

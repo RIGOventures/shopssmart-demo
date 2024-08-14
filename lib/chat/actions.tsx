@@ -1,7 +1,7 @@
 'use server'
 
 import { ResultCode } from '@/lib/utils'
-import type { AI } from '@/lib/actions'
+import type { AI, AIState } from '@/lib/actions'
 
 import { headers } from 'next/headers'
 import { openai } from '@ai-sdk/openai'
@@ -11,11 +11,14 @@ import {
     createStreamableValue
 } from 'ai/rsc'
 import { rateLimit } from '@/app/(list)/actions'
-
 import { nanoid } from '@/lib/utils'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 
+// Create openai model
+const model = openai('gpt-4-turbo');
+
+// Design model prompt
 const prompt = `\
     You are a grocery shopping conversation bot and you help recommend users to buy certain groceries.
     You and the user can discuss reasons to buy certain groceries, in the UI.
@@ -25,7 +28,6 @@ const prompt = `\
     Besides that, you cannot interact with the user.
     Thank you for your help! It's greatly appreciated.`
 
-const model = openai('gpt-4-turbo');
 
 function createUserMessage(
 	groceryType: string, 
@@ -42,8 +44,8 @@ function createUserMessage(
 			selectedCategories || specificDescriptors
 				? `If you do not have 5 recommendations that fit these criteria perfectly, do your best to suggest other ${groceryType}'s that I might like.`
 				: ''
-		} 
-
+		}
+        
         Please return this response as a numbered list with the ${groceryType}'s name, followed by a colon, and then a brief reason for picking that ${groceryType}. 
         There should be a line of whitespace between each item in the list.`;
 		
@@ -52,7 +54,6 @@ function createUserMessage(
 
 export async function submitUserMessage(content: string) {
     
-    // Apply rate limit middleware
 	try {
         // Get header
         const headersList = headers()
@@ -61,6 +62,7 @@ export async function submitUserMessage(content: string) {
         const userIP =
             headersList.get('x-forwarded-for') || headersList.get('cf-connecting-ip') || '';
 
+        // Apply rate limit middleware
         const rateLimitResult = await rateLimit(userIP);
         if (rateLimitResult) {
             console.log(rateLimitResult)
@@ -81,9 +83,12 @@ export async function submitUserMessage(content: string) {
 
     // Create message
 	const value = createUserMessage(content, null, null)
-    console.log(value)
+    //console.log(value)
+
+    // Get current ai state
     const aiState = getMutableAIState<typeof AI>()
-  
+
+    // Update ai state with the new message
     aiState.update({
         ...aiState.get(),
         messages: [
@@ -95,10 +100,12 @@ export async function submitUserMessage(content: string) {
             }
         ]
     })
-  
+
+    // Create stream elements
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
     let textNode: undefined | React.ReactNode
-  
+
+    // Query model
     const result = await streamUI({
         model: model,
         initial: <SpinnerMessage />,
@@ -106,11 +113,11 @@ export async function submitUserMessage(content: string) {
         messages: [
             ...aiState.get().messages.map((message: any) => ({
                 role: message.role,
-                content: message.content,
-                name: message.name
+                content: message.content
             }))
         ],
         text: ({ content, done, delta }) => {
+            // Create text stream
             if (!textStream) {
                 textStream = createStreamableValue('')
                 textNode = <BotMessage content={textStream.value} />
@@ -118,6 +125,8 @@ export async function submitUserMessage(content: string) {
     
             if (done) {
                 textStream.done()
+
+                // Update ai with the new message
                 aiState.done(
                     {
                         ...aiState.get(),
@@ -131,14 +140,16 @@ export async function submitUserMessage(content: string) {
                         ]
                     }
                 )
+
             } else {
+                // Gradually get text stream from open ai (typing effect)
                 textStream.update(delta)
             }
     
             return textNode
         }
     })
-  
+
     return {
         id: nanoid(),
         display: result.value

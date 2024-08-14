@@ -58,18 +58,29 @@ export function PromptForm({
 				setInput('')
 				if (!value) return
 
-				// Optimistically add user message UI
-				setMessages(currentMessages => [
-					...currentMessages,
-					{
-						id: nanoid(),
-						display: <UserMessage>{value}</UserMessage>
-					}
-				])
+				// Split words by white space or comma
+				const words = value.split(/[ ,]+/)
+				for (const word of words){
+					
+					// Optimistically add user message UI
+					setMessages(currentMessages => [
+						...currentMessages,
+						{
+							id: nanoid(),
+							display: <UserMessage>{word}</UserMessage>
+						}
+					])
 
-				// Submit and get response message
-				const responseMessage = await submitUserMessage(value)
-				setMessages(currentMessages => [...currentMessages, responseMessage])
+					// Submit user message
+					const responseMessage = await submitUserMessage(word)
+
+					// Update UI with placeholder interface
+					if (responseMessage) {
+						setMessages(currentMessages => [...currentMessages, responseMessage])
+					}
+
+				}
+
 			}}
 		>
 			<div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
