@@ -52,42 +52,8 @@ function createUserMessage(
 	return fullSearchCriteria
 }
 
-export async function submitUserMessage(content: string) {
+export async function submitPrompt(aiState: any, value: string) {
     
-	try {
-        // Get header
-        const headersList = headers()
-        
-        // Get user ip
-        const userIP =
-            headersList.get('x-forwarded-for') || headersList.get('cf-connecting-ip') || '';
-
-        // Apply rate limit middleware
-        const rateLimitResult = await rateLimit(userIP);
-        if (rateLimitResult) {
-            console.log(rateLimitResult)
-            //return rateLimitResult;
-        }
-    } catch (error) {
-
-        let message
-        if (error instanceof Error) message = error.message
-        else message = String(error)
-
-		return {
-            type: 'error',
-            resultCode: ResultCode.UnknownError,
-            message: message
-        }
-	}
-
-    // Create message
-	const value = createUserMessage(content, null, null)
-    //console.log(value)
-
-    // Get current ai state
-    const aiState = getMutableAIState<typeof AI>()
-
     // Update ai state with the new message
     aiState.update({
         ...aiState.get(),
@@ -96,16 +62,37 @@ export async function submitUserMessage(content: string) {
             {
                 id: nanoid(),
                 role: 'user',
-                content
+                content: value
+            },
+            {
+                id: nanoid(),
+                role: 'assistant',
+                content: ""
             }
         ]
     })
+
+    // Submit prompt
+    //const prompt = createUserMessage(value, null, null)
+    //console.log(prompt)
 
     // Create stream elements
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
     let textNode: undefined | React.ReactNode
 
+    // Create promise elements 
+    let textContent = ""
+    let textFinished = false
+    let textPromise = new Promise<string>(resolve  => {
+        let interval = setInterval(() => {
+            if (!textFinished) return;
+            clearInterval(interval);
+            resolve(textContent);
+        }, 100)
+    })
+
     // Query model
+    console.log(aiState.get().messages)
     const result = await streamUI({
         model: model,
         initial: <SpinnerMessage />,
@@ -123,24 +110,11 @@ export async function submitUserMessage(content: string) {
                 textNode = <BotMessage content={textStream.value} />
             }
     
+            // Update text stream
             if (done) {
                 textStream.done()
-
-                // Update ai with the new message
-                aiState.done(
-                    {
-                        ...aiState.get(),
-                        messages: [
-                            ...aiState.get().messages,
-                            {
-                                id: nanoid(),
-                                role: 'assistant',
-                                content
-                            }
-                        ]
-                    }
-                )
-
+                textContent = content
+                textFinished = true
             } else {
                 // Gradually get text stream from open ai (typing effect)
                 textStream.update(delta)
@@ -150,9 +124,117 @@ export async function submitUserMessage(content: string) {
         }
     })
 
-    return {
-        id: nanoid(),
-        display: result.value
+    return [
+        {
+            id: nanoid(),
+            display: result.value
+        }, 
+        textPromise
+    ]
+}
+
+function executeAsync(func: (value: any) => void) {
+    setTimeout(func, 0);
+}
+
+async function waitUntil(condition: () => boolean, time = 100) {
+    while (!condition()) {
+        await new Promise((resolve) => setTimeout(resolve, time));
     }
+}
+
+export async function submitUserMessage(value: string) {
+    
+    // Rate limit by middleware
+	try {
+        // Get header
+        const headersList = headers()
+        
+        // Get user ip
+        const userIP =
+            headersList.get('x-forwarded-for') || headersList.get('cf-connecting-ip') || '';
+
+        // Apply rate limit middleware
+        const rateLimitResult = await rateLimit(userIP);
+        if (rateLimitResult) {
+            //console.log(rateLimitResult)
+            //return rateLimitResult;
+        }
+    } catch (error) {
+
+        let message
+        if (error instanceof Error) message = error.message
+        else message = String(error)
+
+		return {
+            type: 'error',
+            resultCode: ResultCode.UnknownError,
+            message: message
+        }
+	}
+
+    // Get current ai state
+    const aiState = getMutableAIState<typeof AI>()
+
+    const responses = []
+    const promises: any[] = []
+
+    // Split words by white space or comma
+    const words = value.split(/[ ,]+/)
+    for (const word of words) {
+        const [result, promise] = await submitPrompt(aiState, word)
+        responses.push(result)
+        promises.push(promise)
+    }
+
+    // Finish state so it can be update properly
+    aiState.done(
+        {
+            ...aiState.get()
+        }
+    )
+
+    // Get current another ai state to sync
+    const asyncAiState = getMutableAIState<typeof AI>()
+    executeAsync(async function() {
+
+        // Update ai with the message
+        const currentMessages = asyncAiState.get().messages
+
+        const length = promises.length
+        const finalIndex = currentMessages.length - 1
+        for (let index = 0; index < length; index++) {
+            
+            let content = ""
+            let finished = false
+
+            let promise = promises[index]
+            promise.then((result: string) => {
+                content = result
+                finished = true
+            })
+
+            await waitUntil(() => finished === true);
+
+            // Place recommendation every other message
+            let displacement = (length - (index + 1)) * 2
+            currentMessages[finalIndex - displacement] = {
+                id: nanoid(),
+                role: 'assistant',
+                content: content
+            }
+        }
+
+        // Finish state
+        asyncAiState.done(
+            {
+                ...asyncAiState.get(),
+                messages: currentMessages
+            }
+        )
+
+    });
+
+    return responses
 }
   
