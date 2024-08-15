@@ -52,7 +52,7 @@ function createUserMessage(
 	return fullSearchCriteria
 }
 
-export async function submitPrompt(aiState: any, value: string) {
+export async function submitPrompt(aiState: any, value: string, displacement: number) {
     
     // Update ai state with the new message
     aiState.update({
@@ -80,19 +80,7 @@ export async function submitPrompt(aiState: any, value: string) {
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
     let textNode: undefined | React.ReactNode
 
-    // Create promise elements 
-    let textContent = ""
-    let textFinished = false
-    let textPromise = new Promise<string>(resolve  => {
-        let interval = setInterval(() => {
-            if (!textFinished) return;
-            clearInterval(interval);
-            resolve(textContent);
-        }, 100)
-    })
-
     // Query model
-    console.log(aiState.get().messages)
     const result = await streamUI({
         model: model,
         initial: <SpinnerMessage />,
@@ -113,8 +101,22 @@ export async function submitPrompt(aiState: any, value: string) {
             // Update text stream
             if (done) {
                 textStream.done()
-                textContent = content
-                textFinished = true
+
+                // Update ai with the message
+                let currentMessages = aiState.get().messages
+                // Place recommendation every other message
+                currentMessages[displacement] = {
+                    id: nanoid(),
+                    role: 'assistant',
+                    content: content
+                }
+
+                // Update ai state with the new message
+                aiState.update({
+                    ...aiState.get(),
+                    messages: currentMessages
+                })
+
             } else {
                 // Gradually get text stream from open ai (typing effect)
                 textStream.update(delta)
@@ -124,23 +126,11 @@ export async function submitPrompt(aiState: any, value: string) {
         }
     })
 
-    return [
-        {
-            id: nanoid(),
-            display: result.value
-        }, 
-        textPromise
-    ]
-}
-
-function executeAsync(func: (value: any) => void) {
-    setTimeout(func, 0);
-}
-
-async function waitUntil(condition: () => boolean, time = 100) {
-    while (!condition()) {
-        await new Promise((resolve) => setTimeout(resolve, time));
+    return {
+        id: nanoid(),
+        display: result.value
     }
+
 }
 
 export async function submitUserMessage(value: string) {
@@ -176,64 +166,22 @@ export async function submitUserMessage(value: string) {
     // Get current ai state
     const aiState = getMutableAIState<typeof AI>()
 
+    // Get current messages
+    const currentMessages = aiState.get().messages
     const responses = []
-    const promises: any[] = []
 
     // Split words by white space or comma
     const words = value.split(/[ ,]+/)
-    for (const word of words) {
-        const [result, promise] = await submitPrompt(aiState, word)
+    for (let index = 0; index < words.length; index++) {
+        let word = words[index]
+        let displacement = currentMessages.length + index * 2 + 1
+
+        const result = await submitPrompt(aiState, word, displacement)
         responses.push(result)
-        promises.push(promise)
     }
 
     // Finish state so it can be update properly
-    aiState.done(
-        {
-            ...aiState.get()
-        }
-    )
-
-    // Get current another ai state to sync
-    const asyncAiState = getMutableAIState<typeof AI>()
-    executeAsync(async function() {
-
-        // Update ai with the message
-        const currentMessages = asyncAiState.get().messages
-
-        const length = promises.length
-        const finalIndex = currentMessages.length - 1
-        for (let index = 0; index < length; index++) {
-            
-            let content = ""
-            let finished = false
-
-            let promise = promises[index]
-            promise.then((result: string) => {
-                content = result
-                finished = true
-            })
-
-            await waitUntil(() => finished === true);
-
-            // Place recommendation every other message
-            let displacement = (length - (index + 1)) * 2
-            currentMessages[finalIndex - displacement] = {
-                id: nanoid(),
-                role: 'assistant',
-                content: content
-            }
-        }
-
-        // Finish state
-        asyncAiState.done(
-            {
-                ...asyncAiState.get(),
-                messages: currentMessages
-            }
-        )
-
-    });
+    aiState.done({...aiState.get()})
 
     return responses
 }

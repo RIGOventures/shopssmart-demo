@@ -2,8 +2,7 @@
 
 import { type AI } from '@/lib/actions'
 
-import * as React from 'react'
-
+import { useEffect, useRef } from 'react'
 import { useActions, useUIState } from 'ai/rsc'
 
 import { SpinnerMessage, UserMessage } from './chat/message'
@@ -32,30 +31,19 @@ export function PromptForm({
 }) {
 	const router = useRouter()
 	const { formRef, onKeyDown } = useEnterSubmit()
-	const inputRef = React.useRef<HTMLTextAreaElement>(null)
+	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const { createUserMessage, submitUserMessage } = useActions()
 
 	// https://sdk.vercel.ai/docs/reference/ai-sdk-rsc/use-ui-state
 	const [_, setMessages] = useUIState<typeof AI>()
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (inputRef.current) {
 			inputRef.current.focus()
 		}
 	}, [])
 
-	const callback = async (e: any) => {
-
-		e.preventDefault()
-
-		// Blur focus on mobile
-		if (window.innerWidth < 600) {
-			e.target['message']?.blur()
-		}
-
-		const value = input.trim()
-		setInput('')
-		if (!value) return
+	const callback = async (value: string) => {
 
 		// Split words by white space or comma
 		const words = value.split(/[ ,]+/)
@@ -97,12 +85,29 @@ export function PromptForm({
 
 	}
 
-	const debouncedSubmitHandler = useDebouncedCallback(callback, 1000)
+	const debouncedSubmitHandler = useDebouncedCallback(callback, 2000)
+
+	const onSubmit = (e: any) => {
+
+		e.preventDefault()
+
+		// Blur focus on mobile
+		if (window.innerWidth < 600) {
+			e.target['message']?.blur()
+		}
+
+		const value = input.trim()
+		setInput('')
+		if (!value) return
+
+		debouncedSubmitHandler(value)
+
+	}
 
 	return (
 		<form
 			ref={formRef}
-			onSubmit={callback}
+			onSubmit={onSubmit}
 		>
 			<div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
 				<Tooltip>
