@@ -55,10 +55,6 @@ export function PromptForm({
 				{
 					id: nanoid(),
 					display: <UserMessage>{word}</UserMessage>
-				},
-				{
-					id: nanoid(),
-					display: <SpinnerMessage />
 				}
 			])
 
@@ -77,7 +73,7 @@ export function PromptForm({
 
 				// Place recommendation every other message
 				let displacement = (length - (index + 1)) * 2
-				currentMessages[finalIndex - displacement] = responseMessage
+				currentMessages.splice(finalIndex - displacement, 0, responseMessage)
 			}
 
 			return currentMessages

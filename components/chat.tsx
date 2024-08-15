@@ -34,16 +34,19 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
 
     useEffect(() => {
         if (session?.user) {
-            if (!path.includes('list') && messages.length === 1) {
+            // User has sent a message
+            if (!path.includes('list') && messages.length >= 1) {
                 window.history.replaceState({}, '', `/list/${id}`)
             }
         }
     }, [id, path, session?.user, messages])
 
     useEffect(() => {
-        const messagesLength = aiState.messages?.length
-        // User has sent a message
-        if (messagesLength === 2) {
+        let stateMessages = aiState.messages
+        const messagesLength = stateMessages ?.length
+
+        // AI has responsed to the message
+        if (messagesLength === 2 && stateMessages [1].content != "") {
             router.refresh()
         }
     }, [aiState.messages, router])

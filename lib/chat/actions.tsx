@@ -63,11 +63,6 @@ export async function submitPrompt(aiState: any, value: string, displacement: nu
                 id: nanoid(),
                 role: 'user',
                 content: value
-            },
-            {
-                id: nanoid(),
-                role: 'assistant',
-                content: ""
             }
         ]
     })
@@ -100,16 +95,17 @@ export async function submitPrompt(aiState: any, value: string, displacement: nu
     
             // Update text stream
             if (done) {
+                
                 textStream.done()
 
                 // Update ai with the message
                 let currentMessages = aiState.get().messages
                 // Place recommendation every other message
-                currentMessages[displacement] = {
+                currentMessages.splice(displacement, 0, {
                     id: nanoid(),
                     role: 'assistant',
                     content: content
-                }
+                })
 
                 // Update ai state with the new message
                 aiState.update({
