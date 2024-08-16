@@ -10,6 +10,9 @@ import { SpinnerMessage, UserMessage } from './chat/message'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 
+import { toast } from 'sonner'
+import { getMessageFromCode } from '@/lib/utils'
+
 import { useDebouncedCallback } from 'use-debounce';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 
@@ -66,26 +69,31 @@ export function PromptForm({
 		}
 
 		// Submit user message
-		const responses = await submitUserMessage(value)
-		console.log(responses)
-		// Update UI with placeholder interface
-		setMessages(currentMessages => {
+		const response = await submitUserMessage(value)
+		if (response.type === 'error') {
+			toast.error(getMessageFromCode(response.resultCode))
+		} else {
+			
+			// Update UI with placeholder interface
+			setMessages(currentMessages => {
 
-			const finalIndex = currentMessages.length - 1
+				const finalIndex = currentMessages.length - 1
 
-			const length = responses.length
-			for (let index = 0; index < length; index++) {
-				let responseMessage = responses[index]
+				const length = response.length
+				for (let index = 0; index < length; index++) {
+					let responseMessage = response[index]
 
-				// Place recommendation every other message
-				let displacement = (length - (index + 1)) * 2
-				let currentIndex = finalIndex - displacement;
-				currentMessages[currentIndex] = responseMessage
+					// Place recommendation every other message
+					let displacement = (length - (index + 1)) * 2
+					let currentIndex = finalIndex - displacement;
+					currentMessages[currentIndex] = responseMessage
 
-			}
+				}
 
-			return currentMessages
-		})
+				return currentMessages
+			})
+
+		}
 
 	}
 

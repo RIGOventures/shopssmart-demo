@@ -40,3 +40,18 @@ export const nanoid = customAlphabet(
     '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
     7
 ) // 7-character random string
+
+export type BaseUrlParams = { 
+    query?: string,
+}
+
+export function buildUrl<T extends BaseUrlParams>(url: string, params: T): string 
+{
+    const queryWithParams  = new URL(url)
+    for (const [key, value] of Object.entries(params)) {
+        let param = value || ''
+        queryWithParams.searchParams.append(key, param.toString());
+    }
+
+    return queryWithParams.href
+}

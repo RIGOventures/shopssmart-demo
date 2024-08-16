@@ -20,7 +20,10 @@ import { rateLimit } from '@/app/(list)/actions'
 import { nanoid } from '@/lib/utils'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
-import { queryItem } from '../shop/actions'
+import { searchProduct } from '../shop/spoonacular'
+import { getUPCInformation } from '../shop/upc-database'
+import { AxiosError } from 'axios'
+import { stat } from 'fs'
 
 // Create openai model
 const model = openai('gpt-4-turbo');
@@ -62,6 +65,18 @@ function createUserMessage(
 export async function submitPrompt(aiState: any, value: string, 
     displacement: number, onFinish: () => void) {
     
+    // Get any items that match this item 
+    const response = await searchProduct(value)
+    console.log(response.data)
+
+    // Submit prompt
+    //const prompt = createUserMessage(value, null, null)
+    //console.log(prompt)
+
+    //const info = await getUPCInformation(4001743021716)
+    //console.log(info.data)
+    //console.log(info.data.stores)
+
     // Update ai state with the new message
     aiState.update({
         ...aiState.get(),
@@ -79,13 +94,7 @@ export async function submitPrompt(aiState: any, value: string,
             }
         ]
     })
-
-    const response = await queryItem(value)
-    console.log(response.data)
-
-    // Submit prompt
-    //const prompt = createUserMessage(value, null, null)
-    //console.log(prompt)
+    
 
     // Create stream elements
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
@@ -161,7 +170,6 @@ export async function submitUserMessage(message: string) {
         // Apply rate limit middleware
         const rateLimitResult = await rateLimit(userIP);
         if (rateLimitResult) {
-            //console.log(rateLimitResult)
             //return rateLimitResult;
         }
     } catch (error) {
@@ -226,14 +234,52 @@ export async function submitUserMessage(message: string) {
         }
     }
 
-    // Send prompt for each word
-    for (let index = 0; index < words.length; index++) {
-        let word = words[index]
-        let displacement = currentMessages.length + index * 2 + 1
+    // Check if request fails
+	try {
 
-        const result = await submitPrompt(aiState, word, displacement, finishResponse)
-        responses.push(result)
-    }
+        // Send prompt for each word
+        for (let index = 0; index < words.length; index++) {
+            let word = words[index]
+            let displacement = currentMessages.length + index * 2 + 1
+
+            const result = await submitPrompt(aiState, word, displacement, finishResponse)
+            responses.push(result)
+        }
+
+    } catch (error) {
+
+        let message
+        if (error instanceof Error) message = error.message
+        else message = String(error)
+
+        let resultCode 
+
+        if (error instanceof AxiosError) {
+             
+            let statusCode = error.response?.status
+            switch (statusCode) {
+                case 401:
+                    resultCode = ResultCode.InvalidCredentials
+                    break
+                case 402:
+                case 420:
+                    resultCode = ResultCode.RateLimited
+                    break
+                default:
+                    resultCode = ResultCode.UnknownError
+            }
+
+        } else {
+            resultCode = ResultCode.UnknownError
+        }
+		
+        return {
+            type: 'error',
+            resultCode: resultCode,
+            message: message
+        }
+
+	}
 
     aiState.done({...aiState.get()})
 
