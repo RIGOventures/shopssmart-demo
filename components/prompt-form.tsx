@@ -3,7 +3,7 @@
 import { type AI } from '@/lib/actions'
 
 import { useEffect, useRef } from 'react'
-import { useActions, useUIState } from 'ai/rsc'
+import { useActions, useAIState, useUIState } from 'ai/rsc'
 
 import { SpinnerMessage, UserMessage } from './chat/message'
 
@@ -32,10 +32,11 @@ export function PromptForm({
 	const router = useRouter()
 	const { formRef, onKeyDown } = useEnterSubmit()
 	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const { createUserMessage, submitUserMessage } = useActions()
+	const { submitUserMessage } = useActions()
 
 	// https://sdk.vercel.ai/docs/reference/ai-sdk-rsc/use-ui-state
 	const [_, setMessages] = useUIState<typeof AI>()
+	const [__, setState] = useAIState()
 
 	useEffect(() => {
 		if (inputRef.current) {
@@ -55,6 +56,10 @@ export function PromptForm({
 				{
 					id: nanoid(),
 					display: <UserMessage>{word}</UserMessage>
+				},
+				{
+					id: nanoid(),
+					display: <SpinnerMessage />
 				}
 			])
 
@@ -62,18 +67,21 @@ export function PromptForm({
 
 		// Submit user message
 		const responses = await submitUserMessage(value)
-
+		console.log(responses)
 		// Update UI with placeholder interface
 		setMessages(currentMessages => {
 
-			const length = responses.length
 			const finalIndex = currentMessages.length - 1
+
+			const length = responses.length
 			for (let index = 0; index < length; index++) {
 				let responseMessage = responses[index]
 
 				// Place recommendation every other message
 				let displacement = (length - (index + 1)) * 2
-				currentMessages.splice(finalIndex - displacement, 0, responseMessage)
+				let currentIndex = finalIndex - displacement;
+				currentMessages[currentIndex] = responseMessage
+
 			}
 
 			return currentMessages

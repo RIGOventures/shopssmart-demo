@@ -38,18 +38,19 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
             if (!path.includes('list') && messages.length >= 1) {
                 window.history.replaceState({}, '', `/list/${id}`)
             }
+
         }
     }, [id, path, session?.user, messages])
 
-    useEffect(() => {
-        let stateMessages = aiState.messages
-        const messagesLength = stateMessages ?.length
+    // useEffect(() => {
+    //     let stateMessages = aiState.messages
+    //     const messagesLength = stateMessages?.length
 
-        // AI has responsed to the message
-        if (messagesLength === 2 && stateMessages [1].content != "") {
-            router.refresh()
-        }
-    }, [aiState.messages, router])
+    //     // AI has responsed to the message
+    //     if (messagesLength === 2) {
+    //         router.refresh()
+    //     }
+    // }, [aiState.messages, router])
 
     useEffect(() => {
         setNewChatId(id)
