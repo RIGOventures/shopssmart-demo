@@ -90,6 +90,8 @@ export async function submitPrompt(aiState: any, value: string,
     
     // Get any items that match this item 
     const response = await searchUPCItem(value) // await searchProduct(value)
+
+    // Get products from data
     let data = response.data
     let products = data.products || data.items
 
