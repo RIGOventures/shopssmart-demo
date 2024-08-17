@@ -25,7 +25,7 @@ export async function searchProduct(item: string, number = 10) {
     let params = {
         apiKey: apiKey,
         query: item, // String | The (natural language) search query.
-        addProductInformation: true,
+        addProductInformation: false,
         number: number
     }
 

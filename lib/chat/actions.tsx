@@ -23,7 +23,6 @@ import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 import { searchProduct } from '../shop/spoonacular'
 import { getUPCInformation } from '../shop/upc-database'
 import { AxiosError } from 'axios'
-import { stat } from 'fs'
 
 // Create openai model
 const model = openai('gpt-4-turbo');
@@ -41,25 +40,49 @@ const prompt = `\
 
 function createUserMessage(
 	groceryType: string, 
-	selectedCategories: string | null, 
-	specificDescriptors: string | null
+    availableProducts?: string,
+	selectedCategories?: string, 
+	specificDescriptors?: string
 ) {
-	let fullSearchCriteria = `Give me a list of 5 ${groceryType} recommendations ${
-			selectedCategories ? `that fit all of the following categories: ${selectedCategories}` : ''
-		}. ${
-			specificDescriptors
-				? `Make sure it fits the following description as well: ${specificDescriptors}.`
-				: ''
-		} ${
-			selectedCategories || specificDescriptors
-				? `If you do not have 5 recommendations that fit these criteria perfectly, do your best to suggest other ${groceryType}'s that I might like.`
-				: ''
-		}
-        
-        Please return this response as a numbered list with the ${groceryType}'s name, followed by a colon, and then a brief reason for picking that ${groceryType}. 
-        There should be a line of whitespace between each item in the list.`;
+	let fullSearchCriteria = `Pick one ${groceryType} recommendation`
+    + `${
+            availableProducts ? 
+            `from the available products: ${availableProducts}` : 
+            ''
+        }. `
+    + `${
+            selectedCategories ? 
+            `Make sure that is fits all of the following categories: ${selectedCategories}. ` : 
+            ''
+        }`
+    + `${
+            specificDescriptors? 
+            `Make sure it fits the following description as well: ${specificDescriptors}. ` : 
+            ''
+        }`
+    + `${
+			selectedCategories || specificDescriptors? 
+            `If you cannot pick a recommendation that fit these criteria perfectly, select the one that best matches. ` :
+            ''
+		}`
+    + `Please respond with the ${groceryType}'s name, followed by a colon, and then a brief reason for picking that ${groceryType}.`
 		
 	return fullSearchCriteria
+}
+
+// names is a list of keys you want to keep
+function removeAllExcept(arr: [], names: string[]) { 
+    arr.forEach(item => {
+        Object.keys(item).forEach(key => {
+            if (!names.includes(key)) {
+                delete item[key]
+            }
+        })
+    })
+}
+
+function getItemByValue(arr: [], key: string, value: any) {
+    return arr.find(item => item[key] === value);
 }
 
 export async function submitPrompt(aiState: any, value: string, 
@@ -67,15 +90,20 @@ export async function submitPrompt(aiState: any, value: string,
     
     // Get any items that match this item 
     const response = await searchProduct(value)
-    console.log(response.data)
+    let products = response.data?.products
+
+    // Keep certain fields
+    let fields = [ "title", "badges", "description", "upc" ]
+    removeAllExcept(products, fields);
+
+    // Generate list of available products
+    let availableProducts = Object.entries(products)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
 
     // Submit prompt
-    //const prompt = createUserMessage(value, null, null)
-    //console.log(prompt)
-
-    //const info = await getUPCInformation(4001743021716)
-    //console.log(info.data)
-    //console.log(info.data.stores)
+    const prompt = createUserMessage(value, availableProducts)
+    console.log(prompt)
 
     // Update ai state with the new message
     aiState.update({
@@ -111,7 +139,7 @@ export async function submitPrompt(aiState: any, value: string,
                 content: message.content
             }))
         ],
-        text: ({ content, done, delta }) => {
+        text: async ({ content, done, delta }) => {
             // Create text stream
             if (!textStream) {
                 textStream = createStreamableValue('')
@@ -121,6 +149,21 @@ export async function submitPrompt(aiState: any, value: string,
             // Update text stream
             if (done) {  
                 textStream.done()
+
+                console.log(content)
+
+                const [title, description] = content.match(/\d\.\s*(.*?):\s*(.*)/) || [];
+                
+                const product = getItemByValue(products, "title", title)
+                let { upc } = product!
+
+                let result = await getUPCInformation(upc)
+                
+                console.log(result)
+
+                console.log(result.data)
+
+                textNode = <BotMessage content={title + " Why? " + description} />
 
                 // Update ai with the message
                 let currentMessages = aiState.get().messages
