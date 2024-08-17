@@ -47,7 +47,7 @@ function createUserMessage(
 	let fullSearchCriteria = `Pick one ${groceryType} recommendation`
     + `${
             availableProducts ? 
-            `from the available products: ${availableProducts}` : 
+            `from the list of related products: ${availableProducts}` : 
             ''
         }. `
     + `${
@@ -65,8 +65,10 @@ function createUserMessage(
             `If you cannot pick a recommendation that fit these criteria perfectly, select the one that best matches. ` :
             ''
 		}`
-    + `Please respond with the ${groceryType}'s name, followed by a colon, and then a brief reason for picking that ${groceryType}.`
-		
+    + `Please only respond with the ${groceryType}'s name, then on the next line, a brief reason for picking that ${groceryType}. `
+	+ `Finally, add a line that explains that you cannot currently provide a link to your recommendation. `
+    + `Thank you very much!`
+
 	return fullSearchCriteria
 }
 
@@ -100,13 +102,10 @@ export async function submitPrompt(aiState: any, value: string,
     removeAllExcept(products, fields);
 
     // Generate list of available products
-    let availableProducts = Object.entries(products)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
+    let availableProducts = JSON.stringify(products)
 
     // Submit prompt
     const prompt = createUserMessage(value, availableProducts)
-    console.log(prompt)
 
     // Update ai state with the new message
     aiState.update({
@@ -153,20 +152,19 @@ export async function submitPrompt(aiState: any, value: string,
             if (done) {  
                 textStream.done()
 
-                console.log(content)
-
-                const [title, description] = content.match(/\d\.\s*(.*?):\s*(.*)/) || [];
+                // Get choice
+                const [, title, description] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
                 
+                // Get product
                 const product = getItemByValue(products, "title", title)
-                let { upc, barcode } = product!
+                if (!product) {
+                    throw new Error("Cannot find product " + title)
+                }
 
+                // Get product by UPC code
+                let { upc, barcode } = product
                 let result = await getUPCInformation(upc || barcode)
-                
-                console.log(result)
-
                 console.log(result.data)
-
-                textNode = <BotMessage content={title + " Why? " + description} />
 
                 // Update ai with the message
                 let currentMessages = aiState.get().messages

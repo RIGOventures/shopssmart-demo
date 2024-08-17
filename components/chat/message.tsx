@@ -27,11 +27,11 @@ export function UserMessage({ children }: { children: React.ReactNode }) {
 }
 
 export function BotMessage({
-  content,
-  className
+    content,
+    className
 }: {
-  content: string | StreamableValue<string>
-  className?: string
+    content: string | StreamableValue<string>
+    className?: string
 }) {
     const text = useStreamableText(content)
 

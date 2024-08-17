@@ -12,7 +12,7 @@ const baseUrl = "https://api.upcdatabase.org"
 export async function searchUPCItem(item: string) { 
 
     // Create request url
-    const requestUrl = `${baseUrl}/search`
+    const requestUrl = `${baseUrl}/search/`
 
     // Create search params
     let params = {
