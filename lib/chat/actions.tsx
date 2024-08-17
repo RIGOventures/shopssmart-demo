@@ -21,7 +21,7 @@ import { nanoid } from '@/lib/utils'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 import { searchProduct } from '../shop/spoonacular'
-import { getUPCInformation } from '../shop/upc-database'
+import { searchUPCItem, getUPCInformation } from '../shop/upc-database'
 import { AxiosError } from 'axios'
 
 // Create openai model
@@ -89,11 +89,12 @@ export async function submitPrompt(aiState: any, value: string,
     displacement: number, onFinish: () => void) {
     
     // Get any items that match this item 
-    const response = await searchProduct(value)
-    let products = response.data?.products
+    const response = await searchUPCItem(value) // await searchProduct(value)
+    let data = response.data
+    let products = data.products || data.items
 
     // Keep certain fields
-    let fields = [ "title", "badges", "description", "upc" ]
+    let fields = [ "title", "badges", "description", "upc", "barcode" ]
     removeAllExcept(products, fields);
 
     // Generate list of available products
@@ -155,9 +156,9 @@ export async function submitPrompt(aiState: any, value: string,
                 const [title, description] = content.match(/\d\.\s*(.*?):\s*(.*)/) || [];
                 
                 const product = getItemByValue(products, "title", title)
-                let { upc } = product!
+                let { upc, barcode } = product!
 
-                let result = await getUPCInformation(upc)
+                let result = await getUPCInformation(upc || barcode)
                 
                 console.log(result)
 

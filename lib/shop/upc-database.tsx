@@ -4,7 +4,7 @@ import axios from 'axios'
 import { buildUrl } from '../utils'
 
 // Configure API key authorization: apiKeyScheme
-const apiKey = process.env['UPC_DATABASE'] || ''
+const apiKey = process.env['UPC_DATABASE_API_KEY'] || ''
 
 const baseUrl = "https://api.upcdatabase.org"
 
