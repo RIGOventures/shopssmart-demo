@@ -4,6 +4,7 @@ import { type ReactNode } from 'react'
 
 import { ResultCode } from '@/lib/utils'
 import type { AI } from '@/lib/actions'
+import type { Product } from "@/lib/types"
 
 import { redirect } from 'next/navigation'
 import { NextResponse } from "next/server";
@@ -79,8 +80,8 @@ function createUserMessage(
 }
 
 // names is a list of keys you want to keep
-function removeAllExcept(arr: [], names: string[]) { 
-    arr.forEach(item => {
+function removeAllExcept(arr: any[], names: string[]) { 
+    arr.forEach((item) => {
         Object.keys(item).forEach(key => {
             if (!names.includes(key)) {
                 delete item[key]
@@ -89,7 +90,7 @@ function removeAllExcept(arr: [], names: string[]) {
     })
 }
 
-function getItemByValue(arr: [], key: string, value: any) {
+function getItemByValue(arr: any[], key: string, value: any) {
     return arr.find(item => item[key] === value);
 }
 
@@ -100,7 +101,7 @@ export async function submitPrompt(aiState: any, value: string,
     let location = { longitude: 0, latitude: 0}
 
     let searchResults = await Promise.all(array_of_searches.flatMap(async search => await search([ value ], location)));
-    const products = searchResults.flat()
+    const products: Product[] = searchResults.flat()
 
     // Keep certain fields
     let fields = [ "upc", "description", "category", "price", "url" ]

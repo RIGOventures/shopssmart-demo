@@ -1,7 +1,7 @@
 'use server'
 
 import axios from 'axios'
-import { BaseUrlParams, buildUrl } from '../../utils'
+import { buildUrl } from '../../utils'
 
 // Configure API key authorization: apiKeyScheme
 const apiKey = process.env['SPOONACULAR_API_KEY'] || ''
@@ -9,7 +9,8 @@ const apiKey = process.env['SPOONACULAR_API_KEY'] || ''
 const baseUrl = "https://api.spoonacular.com"
 
 // Define params we may use
-type UrlParams = BaseUrlParams & { 
+type UrlParams = { 
+    query?: string,
     apiKey: string, 
     addProductInformation?: boolean,
     number?: number

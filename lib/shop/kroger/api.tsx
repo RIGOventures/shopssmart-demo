@@ -27,7 +27,7 @@ type SearchParams = StoreSearchParams & {
 }
 
 import axios from 'axios'
-import { buildUrl } from '../../utils'
+import { buildUrl } from '@/lib/utils'
 
 // Production (https://api.kroger.com/v1/) - A live environment for production traffic.
 // Certification (https://api-ce.kroger.com/v1/) - A certified environment for testing.
