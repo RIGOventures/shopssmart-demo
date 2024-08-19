@@ -69,7 +69,7 @@ export async function requestToken(clientId: string, clientSecret: string) : Pro
 export async function searchProducts(token: Token, 
     term: string, 
     locationId?: string, brand?: string, fulfillment?: string, start?: number, 
-    limit = 25) 
+    limit = 10) 
 { 
 
     // Create request url

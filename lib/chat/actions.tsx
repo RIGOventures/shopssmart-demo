@@ -104,7 +104,7 @@ export async function submitPrompt(aiState: any, value: string,
     const products: Product[] = searchResults.flat()
 
     // Keep certain fields
-    let fields = [ "upc", "description", "category", "price", "url" ]
+    let fields = [ "description", "category", "url" ]
     removeAllExcept(products, fields);
 
     // Generate list of available products
@@ -299,7 +299,7 @@ export async function submitUserMessage(message: string) {
         if (error instanceof Error) message = error.message
         else message = String(error)
 
-        //console.log(message)
+        console.log(message)
 
         let resultCode 
 

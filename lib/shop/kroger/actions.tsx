@@ -115,6 +115,6 @@ export async function searchKroger(term: string[], location: Location, maxDistan
     let stores: KrogerStore[] = locations.data.data; // Axios returns a data field
 
     // TODO: Map by term
-    return await searchStores(stores.slice(0, 10), term[0])
+    return await searchStores(stores.slice(0, 3), term[0])
 
 }
