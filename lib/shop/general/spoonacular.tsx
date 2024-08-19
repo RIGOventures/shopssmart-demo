@@ -1,7 +1,7 @@
 'use server'
 
 import axios from 'axios'
-import { BaseUrlParams, buildUrl } from '../utils'
+import { BaseUrlParams, buildUrl } from '../../utils'
 
 // Configure API key authorization: apiKeyScheme
 const apiKey = process.env['SPOONACULAR_API_KEY'] || ''

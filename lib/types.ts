@@ -27,8 +27,8 @@ export interface Chat extends Record<string, any> {
 
 export interface Session {
     user: {
-      id: string
-      email: string
+        id: string
+        email: string
     }
 }
 
@@ -48,9 +48,33 @@ export interface Result {
     resultCode: ResultCode
 }
 
-export type ServerActionResult<Result> = Promise<
-  | Result
-  | {
-      error: string
-    }
->
+export type ServerActionResult<Result> = Promise<Result | { error: string }>
+
+export type ProductAvailability = {
+    id?: string,
+    quantity?: number,
+    priceLower: number,
+    priceUpper: number
+}
+
+export interface Product {
+    // Identification
+    upc?: string
+    id: string
+    // Description
+    description: string
+    category?: string
+    price: number
+    size?: number
+    unit?: string
+    brand: string
+    // Preferences
+    priority?: number
+    hotness?: number
+    availability: ProductAvailability[]
+    availableOnline: boolean
+    rating?: string
+    // Links
+    url: string
+    imageUrl: string
+}

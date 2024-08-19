@@ -41,13 +41,12 @@ export const nanoid = customAlphabet(
     7
 ) // 7-character random string
 
-export type BaseUrlParams = { 
-    query?: string,
-}
-
-export function buildUrl<T extends BaseUrlParams>(url: string, params: T): string 
-{
+export function buildUrl<T extends {}>(url: string, params: T): string 
+{   
+    // Create url with parameters
     const queryWithParams  = new URL(url)
+
+    // Add search parameters
     for (const [key, value] of Object.entries(params)) {
         let param = value || ''
         queryWithParams.searchParams.append(key, param.toString());

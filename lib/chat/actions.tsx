@@ -20,9 +20,15 @@ import { rateLimit } from '@/app/(list)/actions'
 import { nanoid } from '@/lib/utils'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
-import { searchProduct } from '../shop/spoonacular'
-import { searchUPCItem, getUPCInformation } from '../shop/upc-database'
+import { searchKroger } from '../shop/kroger/actions'
+
 import { AxiosError } from 'axios'
+
+// List of product search functions
+
+const array_of_searches = [
+    searchKroger
+]
 
 // Create openai model
 const model = openai('gpt-4-turbo');
@@ -66,7 +72,7 @@ function createUserMessage(
             ''
 		}`
     + `Please only respond with the ${groceryType}'s name, then on the next line, a brief reason for picking that ${groceryType}. `
-	+ `Finally, add a line that explains that you cannot currently provide a link to your recommendation. `
+	+ `Finally, add a line that includes the link. `
     + `Thank you very much!`
 
 	return fullSearchCriteria
@@ -90,15 +96,14 @@ function getItemByValue(arr: [], key: string, value: any) {
 export async function submitPrompt(aiState: any, value: string, 
     displacement: number, onFinish: () => void) {
     
-    // Get any items that match this item 
-    const response = await searchUPCItem(value) // await searchProduct(value)
+    // Get products from stores
+    let location = { longitude: 0, latitude: 0}
 
-    // Get products from data
-    let data = response.data
-    let products = data.products || data.items
+    let searchResults = await Promise.all(array_of_searches.flatMap(async search => await search([ value ], location)));
+    const products = searchResults.flat()
 
     // Keep certain fields
-    let fields = [ "title", "badges", "description", "upc", "barcode" ]
+    let fields = [ "upc", "description", "category", "price", "url" ]
     removeAllExcept(products, fields);
 
     // Generate list of available products
@@ -153,18 +158,15 @@ export async function submitPrompt(aiState: any, value: string,
                 textStream.done()
 
                 // Get choice
-                const [, title, description] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
+                const [, description, reason ] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
                 
                 // Get product
-                const product = getItemByValue(products, "title", title)
+                const product = getItemByValue(products, "description", description)
                 if (!product) {
-                    throw new Error("Cannot find product " + title)
+                    throw new Error("Cannot find product " + description)
                 }
 
-                // Get product by UPC code
-                let { upc, barcode } = product
-                let result = await getUPCInformation(upc || barcode)
-                console.log(result.data)
+                console.log(product)
 
                 // Update ai with the message
                 let currentMessages = aiState.get().messages
@@ -295,6 +297,8 @@ export async function submitUserMessage(message: string) {
         let message
         if (error instanceof Error) message = error.message
         else message = String(error)
+
+        //console.log(message)
 
         let resultCode 
 

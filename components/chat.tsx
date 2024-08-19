@@ -70,13 +70,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
             className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
             ref={scrollRef}
         >
-            <ChatPanel
-                id={id}
-                input={input}
-                setInput={setInput}
-                isAtBottom={isAtBottom}
-                scrollToBottom={scrollToBottom}
-            />
+
             <div
                 className={cn('pb-[200px] pt-4 md:pt-10', className)}
                 ref={messagesRef}
@@ -90,6 +84,14 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
                 }
                 <div className="w-full h-px" ref={visibilityRef} />
             </div>
+
+            <ChatPanel
+                id={id}
+                input={input}
+                setInput={setInput}
+                isAtBottom={isAtBottom}
+                scrollToBottom={scrollToBottom}
+            />
         </div>
     )
 }
