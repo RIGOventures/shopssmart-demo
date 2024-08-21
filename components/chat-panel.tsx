@@ -1,6 +1,6 @@
 'use client'
 
-import type { AI } from '@/lib/actions'
+import type { AI } from '@/lib/services/ai-state'
 
 import * as React from 'react'
 

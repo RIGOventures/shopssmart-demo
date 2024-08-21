@@ -3,7 +3,8 @@
 import * as React from 'react'
 
 import { useSidebar } from '@/lib/hooks/use-sidebar'
-import { cn } from '@/lib/utils'
+
+import { cn } from '@/lib/utils/style'
 
 export interface SidebarProps extends React.ComponentProps<'div'> {}
 

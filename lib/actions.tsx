@@ -1,101 +1,272 @@
-import { Chat, Message } from '@/lib/types'
+'use server'
 
-export type AIState = {
-    chatId: string
-    messages: Message[]
-}
+import { type ReactNode } from 'react'
 
-export type UIState = {
-    id: string
-    display: React.ReactNode
-}[]
+import { ResultCode } from '@/lib/utils/result'
+import type { Product } from "@/lib/types"
 
-import { auth } from '@/auth'
+import { headers } from 'next/headers'
 
-import { saveChat } from '@/app/actions'
+import type { AI } from '@/lib/services/ai-state'
+import { openai } from '@ai-sdk/openai'
 import {
-    createAI,
-    getAIState,
+    getMutableAIState,
+    streamUI,
+    createStreamableValue
 } from 'ai/rsc'
-import {
-    nanoid
-} from '@/lib/utils'
 
-import { submitUserMessage } from '@/lib/chat/actions'
+import { rateLimit } from '@/lib/services/rate-limit'
+import { nanoid } from '@/lib/utils/nanoid'
 
-import { BotMessage, UserMessage } from '@/components/chat/message'
+import { searchKroger } from './shop/kroger/actions'
+import { searchWalgreens } from './shop/wallgreens/actions'
 
-export const AI = createAI<AIState, UIState>({
-    actions: {
-        submitUserMessage
-    },
-    initialUIState: [],
-    initialAIState: { 
-        chatId: nanoid(), 
-        messages: [] 
-    },
-    onGetUIState: async () => {
-        'use server'
+import { AxiosError } from 'axios'
 
-        const session = await auth()
+import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 
-        if (session && session.user) {
-            const aiState = getAIState() as Chat
+import { getItemByValue, removeAllExcept } from './utils/dictionary'
+import { createMessage, createPrompt } from './utils/ai-model'
 
-            if (aiState) {
-                const uiState = getUIStateFromAIState(aiState)
-                return uiState
-            }
-        } else {
-            return
-        }
-    },
-    onSetAIState: async ({ state }) => {
-        'use server'
+// List of product search functions
 
-        const session = await auth()
+const array_of_searches = [
+    searchKroger,
+    //searchWalgreens
+]
 
-        if (session && session.user) {
-            const { chatId, messages } = state
+// Create openai model
+const model = openai('gpt-4-turbo');
 
-            const createdAt = new Date()
-            const userId = session.user.id as string
-            const path = `/list/${chatId}`
+// Submit a prompt to a model
+export async function submitPrompt(aiState: any, value: string, 
+    displacement: number, onFinish: () => void) {
+    
+    // Get products from stores
+    let location = { latitude: 39.306346, longitude: -84.278902 }
+    // let location = { latitude: 0, longitude: 0 }
 
-            const firstMessageContent = messages[0].content as string
-            const title = firstMessageContent.substring(0, 100)
+    let searchResults = await Promise.all(array_of_searches.flatMap(async search => await search([ value ], location)));
+    const products: Product[] = searchResults.flat()
 
-            const chat: Chat = {
-                id: chatId,
-                title,
-                userId,
-                createdAt,
-                messages,
-                path
-            }
+    // Keep certain fields
+    let fields = [ "description", "category", "url" ]
+    removeAllExcept(products, fields);
 
-            await saveChat(chat)
+    // Generate list of available products
+    let availableProducts = JSON.stringify(products)
 
-        } else {
-            return
-        }
-    }
-})
+    // Create message and prompt
+    const modelPrompt = createPrompt();
+    const userMessage = createMessage(value, availableProducts)
+    
+    // Create stream elements
+    let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
+    let textNode: undefined | ReactNode
 
-export const getUIStateFromAIState = (aiState: Chat) => {
-    return aiState.messages
-        .filter((message: Message) => message.role !== 'system')
-        .map((message: Message, index: number) => (
+    // Update ai state with the new message
+    aiState.update({
+        ...aiState.get(),
+        messages: [
+            ...aiState.get().messages,
             {
-                id: `${aiState.chatId}-${index}`,
-                display:
-                    message.role === 'user' ? (
-                        <UserMessage>
-                            {message.content as string}
-                        </UserMessage>
-                    ) : message.role === 'assistant' && typeof message.content === 'string' ? (
-                        <BotMessage content={message.content} />
-                    ) : null
+                id: nanoid(),
+                role: 'user',
+                content: value
+            },
+            {
+                id: nanoid(),
+                role: 'assistant',
+                content: ""
             }
-        ))
+        ]
+    })
+
+    // Query model
+    const result = await streamUI({
+        model: model,
+        initial: <SpinnerMessage />,
+        system: modelPrompt,
+        messages: [
+            ...aiState.get().messages.map((message: any) => ({
+                role: message.role,
+                content: userMessage
+            }))
+        ],
+        text: async ({ content, done, delta }) => {
+            // Create text stream
+            if (!textStream) {
+                textStream = createStreamableValue('')
+                textNode = <BotMessage content={textStream.value} />
+            }
+    
+            // Update text stream
+            if (done) {  
+                textStream.done()
+
+                // Get choice
+                const [, description, reason ] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
+                
+                // Get product
+                const product = getItemByValue(products, "description", description)
+                if (product) {
+                    console.log(product)
+                }
+
+                // Update ai with the message
+                let currentMessages = aiState.get().messages
+                // Place recommendation every other message
+                currentMessages[displacement] = {
+                    id: nanoid(),
+                    role: 'assistant',
+                    content: content
+                }
+
+                // Update ai state with the new message
+                aiState.update({
+                    ...aiState.get(),
+                    messages: currentMessages
+                })  
+
+                // Call on finish here
+                onFinish()
+
+            } else {
+                // Gradually get text stream from open ai (typing effect)
+                textStream.update(delta)
+            }
+
+            return textNode
+        }
+    })
+
+    return {
+        id: nanoid(),
+        display: result.value
+    }
+
 }
+
+async function waitUntil(condition: () => boolean, time = 100) {
+    while (!condition()) {
+        await new Promise((resolve) => setTimeout(resolve, time));
+    }
+}
+
+export async function submitUserMessage(message: string) {
+
+    // Rate limit by middleware
+	try {
+        // Get header
+        const headersList = headers()
+
+        // Get user ip
+        const userIP =
+            headersList.get('x-forwarded-for') || headersList.get('cf-connecting-ip') || '';
+
+        // Apply rate limit middleware
+        const rateLimitResult = await rateLimit(userIP);
+        if (rateLimitResult) {
+            //return rateLimitResult;
+        }
+    } catch (error) {
+
+        let message
+        if (error instanceof Error) message = error.message
+        else message = String(error)
+
+		return {
+            type: 'error',
+            resultCode: ResultCode.UnknownError,
+            message: message
+        }
+	}
+
+    // Get current ai state
+    const aiState = getMutableAIState<typeof AI>()
+    
+    // Get current messages
+    const currentMessages = aiState.get().messages
+
+    // Split words by white space or comma
+    const words = message.split(/[ ,]+/)
+
+    // Load responses for each word
+    const responses = []
+    let responsesLoaded = 0
+
+    let responsePromise = new Promise(async (resolve, reject) => {
+        // Wait for all responses to load
+        await waitUntil(() => responsesLoaded === words.length);
+
+        // Finish state so it can be updated properly
+        aiState.done({
+            ...aiState.get(),
+            messages: aiState.get().messages
+        })
+
+        // Check if a new chat
+        resolve(currentMessages.length === 0);
+    })
+
+    function finishResponse() {
+        responsesLoaded++
+    }
+
+    // Check if request fails
+	try {
+
+        // Send prompt for each word
+        for (let index = 0; index < words.length; index++) {
+            let word = words[index]
+            let displacement = currentMessages.length + index * 2 + 1
+
+            const result = await submitPrompt(aiState, word, displacement, finishResponse)
+            responses.push(result)
+        }
+
+    } catch (error) {
+
+        let message
+        if (error instanceof Error) message = error.message
+        else message = String(error)
+
+        console.log(message)
+
+        let resultCode 
+
+        if (error instanceof AxiosError) {
+             
+            let statusCode = error.response?.status
+            switch (statusCode) {
+                case 401:
+                    resultCode = ResultCode.InvalidCredentials
+                    break
+                case 402:
+                case 420:
+                    resultCode = ResultCode.RateLimited
+                    break
+                default:
+                    resultCode = ResultCode.UnknownError
+            }
+
+        } else {
+            resultCode = ResultCode.UnknownError
+        }
+		
+        return {
+            type: 'error',
+            resultCode: resultCode,
+            message: message
+        }
+
+	}
+
+    aiState.done({...aiState.get()})
+
+    return {
+        promise: responsePromise,
+        responses: responses
+    }
+}
+  

@@ -1,11 +1,13 @@
 'use server'
 
 import axios from 'axios'
-import { buildUrl } from '../../utils'
+
+import { addSearchParams } from '@/lib/utils/request'
 
 // Configure API key authorization: apiKeyScheme
 const apiKey = process.env['SPOONACULAR_API_KEY'] || ''
 
+// Define base url
 const baseUrl = "https://api.spoonacular.com"
 
 // Define params we may use
@@ -31,7 +33,7 @@ export async function searchProduct(item: string, number = 10) {
     }
 
     // Call the api
-    const queryUrl = buildUrl<UrlParams>(requestUrl, params)
+    const queryUrl = addSearchParams<UrlParams>(requestUrl, params)
     return await axios.get(queryUrl)
 
 }
@@ -45,7 +47,7 @@ export async function getProductInformation(id: number) {
     let params = { apiKey: apiKey }
 
     // Call the api
-    const queryUrl = buildUrl<UrlParams>(requestUrl, params)
+    const queryUrl = addSearchParams<UrlParams>(requestUrl, params)
     return await axios.get(queryUrl)
 
 }

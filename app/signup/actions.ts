@@ -1,7 +1,7 @@
 'use server'
 
 import type { Result, User } from '@/lib/types'
-import { ResultCode } from '@/lib/utils'
+import { ResultCode } from '@/lib/utils/result'
 import { AuthError } from 'next-auth'
 
 import { z } from 'zod'
@@ -38,7 +38,7 @@ export async function createUser(
             password: hashedPassword
         } 
 
-        await kv.hmset(`user:${email}`, user)
+        await kv.hset(`user:${email}`, user)
 
         return {
             type: 'success',

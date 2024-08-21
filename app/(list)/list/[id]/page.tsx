@@ -5,7 +5,7 @@ import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { getChat, getMissingKeys } from '@/app/actions'
 
-import { AI } from '../../../../lib/actions'
+import { AI } from '@/lib/services/ai-state'
 import { Chat } from '@/components/chat'
 
 export interface ChatPageProps {

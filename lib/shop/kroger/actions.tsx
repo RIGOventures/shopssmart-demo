@@ -1,8 +1,7 @@
 'use server'
 
 import { type Product } from '@/lib/types'
-import { type KrogerProduct, KrogerItem } from './types-product'
-import { type KrogerStore } from './types-location'
+import { KrogerProduct, KrogerItem, KrogerStore } from './types'
 
 import { getStoresNearMe, searchProducts, requestToken, type Token } from './api';
 

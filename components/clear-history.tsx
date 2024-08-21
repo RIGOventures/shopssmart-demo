@@ -31,7 +31,6 @@ export function ClearHistory({
 }: ClearHistoryProps) {
     const [open, setOpen] = React.useState(false)
     const [isPending, startTransition] = React.useTransition()
-    const router = useRouter()
 
     return (
         <AlertDialog open={open} onOpenChange={setOpen}>
@@ -60,8 +59,8 @@ export function ClearHistory({
                             startTransition(async () => {
                                 const result = await clearChats()
                                 if (result && 'error' in result) {
-                                toast.error(result.error)
-                                return
+                                    toast.error(result.error)
+                                    return
                                 }
 
                                 setOpen(false)

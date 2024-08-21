@@ -1,11 +1,13 @@
 'use server'
 
 import axios from 'axios'
-import { buildUrl } from '../../utils'
+
+import { addSearchParams } from '@/lib/utils/request'
 
 // Configure API key authorization: apiKeyScheme
 const apiKey = process.env['UPC_DATABASE_API_KEY'] || ''
 
+// Define base url
 const baseUrl = "https://api.upcdatabase.org"
 
 // https://upcdatabase.org/api-search
@@ -20,7 +22,7 @@ export async function searchUPCItem(item: string) {
     }
 
     // Call the api
-    const queryUrl = buildUrl(requestUrl, params)
+    const queryUrl = addSearchParams(requestUrl, params)
     return await axios.get(queryUrl, { headers: {"Authorization" : `Bearer ${apiKey}`} })
 
 }
@@ -31,7 +33,7 @@ export async function getUPCInformation(upc: string | number) {
     const requestUrl = `${baseUrl}/product/${upc}`
 
     // Call the api
-    const queryUrl = buildUrl(requestUrl, {})
+    const queryUrl = addSearchParams(requestUrl, {})
     return await axios.get(queryUrl, { headers: {"Authorization" : `Bearer ${apiKey}`} })
 
 }

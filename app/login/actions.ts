@@ -1,7 +1,7 @@
 'use server';
 
 import type { Result, User } from '@/lib/types';
-import { ResultCode } from '@/lib/utils'
+import { ResultCode } from '@/lib/utils/result'
 import { AuthError } from 'next-auth'
 
 import { z } from 'zod'

@@ -2,11 +2,10 @@
 
 import { Message, Session } from '@/lib/types'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/style'
 
 import { useEffect, useState } from 'react'
-import { useUIState, useAIState } from 'ai/rsc'
-import { usePathname, useRouter } from 'next/navigation'
+import { useUIState } from 'ai/rsc'
 import { toast } from 'sonner'
 
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
@@ -24,33 +23,10 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, className, session, missingKeys }: ChatProps) {
-    const router = useRouter()
-    const path = usePathname()
     const [input, setInput] = useState('')
     const [messages] = useUIState()
-    const [aiState] = useAIState()
 
     const [_, setNewChatId] = useLocalStorage('newChatId', id)
-
-    useEffect(() => {
-        if (session?.user) {
-            // User has sent a message
-            if (!path.includes('list') && messages.length >= 1) {
-                window.history.replaceState({}, '', `/list/${id}`)
-            }
-
-        }
-    }, [id, path, session?.user, messages])
-
-    // useEffect(() => {
-    //     let stateMessages = aiState.messages
-    //     const messagesLength = stateMessages?.length
-
-    //     // AI has responsed to the message
-    //     if (messagesLength === 2) {
-    //         router.refresh()
-    //     }
-    // }, [aiState.messages, router])
 
     useEffect(() => {
         setNewChatId(id)

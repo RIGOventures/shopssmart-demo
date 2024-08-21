@@ -23,10 +23,12 @@ export async function getChats(userId?: string | null) {
 
     try {
         const pipeline = kv.pipeline()
+        // Fetch all the chats stored with the user in reverse order
         const chats: string[] = await kv.zrange(`user:chat:${userId}`, 0, -1, {
             rev: true
         })
 
+        // Get all chats saved
         for (const chat of chats) {
             pipeline.hgetall(chat)
         }
@@ -140,7 +142,7 @@ export async function shareChat(id: string) {
         sharePath: `/share/${chat.id}`
     }
 
-    await kv.hmset(`chat:${chat.id}`, payload)
+    await kv.hset(`chat:${chat.id}`, payload)
 
     return payload
 }
@@ -150,11 +152,13 @@ export async function saveChat(chat: Chat) {
 
     if (session && session.user) {
         const pipeline = kv.pipeline()
-        pipeline.hmset(`chat:${chat.id}`, chat)
+
+        pipeline.hset(`chat:${chat.id}`, chat)
         pipeline.zadd(`user:chat:${chat.userId}`, {
-            score: Date.now(),
-            member: `chat:${chat.id}`
+            score: Date.now(), // Sort by date
+            member: `chat:${chat.id}` // The actual value
         })
+
         await pipeline.exec()
     } else {
         return
@@ -166,7 +170,7 @@ export async function refreshHistory(path: string) {
 }
 
 export async function getMissingKeys() {
-    const keysRequired = ['OPENAI_API_KEY', 'SPOONACULAR_API_KEY']
+    const keysRequired = ['OPENAI_API_KEY', 'SPOONACULAR_API_KEY', 'UPC_DATABASE_API_KEY', 'WALGREENS_API_KEY']
     return keysRequired
         .map(key => (process.env[key] ? '' : key))
         .filter(key => key !== '')

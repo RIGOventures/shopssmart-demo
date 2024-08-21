@@ -6,7 +6,7 @@ interface UserRequestData {
 	lastResetTime: number;
 }
 
-import { ResultCode } from '@/lib/utils'
+import { ResultCode } from '@/lib/utils/result'
 
 import { kv } from '@vercel/kv'
 

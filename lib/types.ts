@@ -2,7 +2,7 @@
 // It describes the shape of the data, and what data type each property should accept.
 
 import { CoreMessage } from 'ai'
-import { ResultCode } from '@/lib/utils'
+import { ResultCode } from '@/lib/utils/result'
 
 /**
 type CoreUserMessage = {

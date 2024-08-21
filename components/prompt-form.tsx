@@ -1,17 +1,17 @@
 'use client'
 
-import { type AI } from '@/lib/actions'
+import { type AI } from '@/lib/services/ai-state'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useTransition } from 'react'
 import { useActions, useAIState, useUIState } from 'ai/rsc'
 
 import { SpinnerMessage, UserMessage } from './chat/message'
 
-import { nanoid } from 'nanoid'
+import { nanoid } from '@/lib/utils/nanoid'
 import { useRouter } from 'next/navigation'
 
 import { toast } from 'sonner'
-import { getMessageFromCode } from '@/lib/utils'
+import { getMessageFromCode } from '@/lib/utils/result'
 
 import { useDebouncedCallback } from 'use-debounce';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
@@ -32,14 +32,18 @@ export function PromptForm({
 	input: string
 	setInput: (value: string) => void
 }) {
+
 	const router = useRouter()
 	const { formRef, onKeyDown } = useEnterSubmit()
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const { submitUserMessage } = useActions()
 
+	const [isPending, startTransition] = useTransition();
+
 	// https://sdk.vercel.ai/docs/reference/ai-sdk-rsc/use-ui-state
 	const [_, setMessages] = useUIState<typeof AI>()
-	const [__, setState] = useAIState()
+	const [aiState] = useAIState()
+
 
 	useEffect(() => {
 		if (inputRef.current) {
@@ -48,7 +52,6 @@ export function PromptForm({
 	}, [])
 
 	const callback = async (value: string) => {
-
 		// Split words by white space or comma
 		const words = value.split(/[ ,]+/)
 		for (const word of words) {
@@ -75,13 +78,14 @@ export function PromptForm({
 		} else {
 			
 			// Update UI with placeholder interface
+			const responses = response.responses
 			setMessages(currentMessages => {
 
 				const finalIndex = currentMessages.length - 1
 
-				const length = response.length
+				const length = responses.length
 				for (let index = 0; index < length; index++) {
-					let responseMessage = response[index]
+					let responseMessage = responses[index]
 
 					// Place recommendation every other message
 					let displacement = (length - (index + 1)) * 2
@@ -92,6 +96,29 @@ export function PromptForm({
 
 				return currentMessages
 			})
+
+			// Wait for AI response to finish
+			const responsesPromise = response.promise
+			responsesPromise.then((response: any) => {
+				// New chat?
+				if (response) {
+
+					startTransition(() => {
+						// Move to the new chat
+						let id = aiState.chatId
+						let path = `list/${id}`
+						window.history.replaceState({}, '', path)
+
+						// Rebuild
+						router.refresh()
+
+						// Refresh the page
+						location.reload();
+					})
+					
+				}
+
+			});
 
 		}
 
@@ -113,7 +140,7 @@ export function PromptForm({
 		if (!value) return
 
 		debouncedSubmitHandler(value)
-
+		
 	}
 
 	return (
@@ -154,19 +181,19 @@ export function PromptForm({
 					onChange={e => setInput(e.target.value)}
 				/>
 				<div className="absolute right-0 top-[13px] sm:right-4">
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button type="submit" size="icon" disabled={input === ''}>
-							<ArrowTurnDownLeftIcon />
-							<span className="sr-only">
-								Send message
-							</span>
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent>
-						Send message
-					</TooltipContent>
-				</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button type="submit" size="icon" disabled={input === ''}>
+								<ArrowTurnDownLeftIcon />
+								<span className="sr-only">
+									Send message
+								</span>
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							Send message
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 		</form>

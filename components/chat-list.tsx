@@ -4,7 +4,7 @@ import { Session } from '@/lib/types'
 
 import Link from 'next/link'
 
-import { UIState } from '@/lib/actions'
+import { UIState } from '@/lib/services/ai-state'
 
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Separator } from '@/components/ui/separator'

@@ -3,7 +3,8 @@ import Link from 'next/link'
 
 import { Suspense } from 'react';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/style'
+
 import { SidebarChat } from '@/components/sidebar-list'
 import { buttonVariants } from '@/components/ui/button'
 import { PlusIcon } from '@heroicons/react/24/outline';

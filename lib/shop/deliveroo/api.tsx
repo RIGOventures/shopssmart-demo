@@ -2,11 +2,9 @@
 
 // Define params we may use
 
-export type Token = {
-    expires_in: number,
-    access_token: string,
-    token_type: string,
-    expiry?: number,
+export type Auth = {
+    apiKey: string,
+    affId: string
 }
 
 import { SearchParams, LocationIdParams, StoreLocationParams } from './types'
@@ -18,38 +16,11 @@ import { addSearchParams } from '@/lib/utils/request'
 // Certification (https://api-ce.kroger.com/v1/) - A certified environment for testing.
 
 // Define base url
-const baseUrl = "https://api.kroger.com/v1"
-
-// https://developer.kroger.com/documentation#3-make-a-test-call
-export async function requestToken(clientId: string, clientSecret: string) : Promise<Token> {
-
-    // Create request url
-    let requestUrl = `${baseUrl}/connect/oauth2/token`
-
-    const apiKey = `${btoa(`${clientId}:${clientSecret}`)}`
-
-    const headers = {
-        'Authorization': `Basic ${apiKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-
-    const body = {
-        'grant_type': 'client_credentials',
-        'scope': 'product.compact'
-    }
-
-    // Call the api
-    const response = await axios.post(requestUrl, body, { headers: headers })
-
-    // Get token
-    const token = await response.data;
-    token.expiry = parseInt(token.expires_in) + Date.now();
-    return token;
-    
-}
+const baseUrl = "https://partners.deliveroo.com/api/v1/fulfillment"
 
 // https://developer.kroger.com/reference/api/product-api-public#tag/Products/operation/productGet
-export async function searchProducts(token: Token, 
+
+export async function searchProducts(auth: Auth, 
     term: string, 
     locationId?: string, brand?: string, fulfillment?: string, start?: number, 
     limit = 10) 
@@ -74,7 +45,8 @@ export async function searchProducts(token: Token,
 }
 
 // https://developer.kroger.com/reference/api/product-api-public#tag/Products/operation/productGetID
-export async function getProductDetails(token: Token, 
+
+export async function getProductDetails(auth: Auth,
     id: number, locationId: string) { 
 
     // Create request url
@@ -90,17 +62,16 @@ export async function getProductDetails(token: Token,
 }
 
 // https://developer.kroger.com/reference/api/location-api-public
-export async function getStoresNearMe(token: Token, 
-    latitude: number, longitude: number, radiusInMiles = 10, limit = 15) {
+
+export async function getStoresNearMe(auth: Auth, latitude: number, longitude: number, radiusInMiles = 10) {
 
     // Create request url
-    const requestUrl = `${baseUrl}/locations?filter.limit=${limit}&filter.chain=Kroger`;
+    const requestUrl = `${baseUrl}/restaurants`;
 
     // Create search params
     let params = { 
-        "filter.lat.near": latitude,
-        "filter.lon.near": longitude,
-        "filter.radiusInMiles": radiusInMiles
+        "lat": latitude,
+        "lot": longitude
     }
 
     // Call the api
