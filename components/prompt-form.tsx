@@ -2,7 +2,7 @@
 
 import { type AI } from '@/lib/services/ai-state'
 
-import { useEffect, useRef, useTransition } from 'react'
+import { ReactNode, useEffect, useRef, useTransition } from 'react'
 import { useActions, useAIState, useUIState } from 'ai/rsc'
 
 import { SpinnerMessage, UserMessage } from './chat/message'
@@ -53,7 +53,7 @@ export function PromptForm({
 
 	const callback = async (value: string) => {
 		// Split words by white space or comma
-		const words = value.split(/[ ,]+/)
+		const words = value.split(/[,]+/)
 		for (const word of words) {
 			
 			// Optimistically add user message UI
@@ -81,18 +81,20 @@ export function PromptForm({
 			const responses = response.responses
 			setMessages(currentMessages => {
 
-				const finalIndex = currentMessages.length - 1
+				const messagesLength = currentMessages.length - 1
+				const responsesLength = responses.length
 
-				const length = responses.length
-				for (let index = 0; index < length; index++) {
-					let responseMessage = responses[index]
-
+				responses.forEach(function (message: {
+					id: string,
+					display: ReactNode
+				}, index: number) {
 					// Place recommendation every other message
-					let displacement = (length - (index + 1)) * 2
-					let currentIndex = finalIndex - displacement;
-					currentMessages[currentIndex] = responseMessage
+					let displacement = (responsesLength - (index + 1)) * 2
 
-				}
+					// Insert at a position from the end
+					let currentIndex = messagesLength - displacement;
+					currentMessages[currentIndex] = message
+				});
 
 				return currentMessages
 			})

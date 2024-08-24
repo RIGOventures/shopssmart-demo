@@ -15,11 +15,27 @@ import { auth } from '@/auth'
 import { nanoid } from '@/lib/utils/nanoid'
 
 import { saveChat } from '@/app/actions'
-import { submitUserMessage } from '@/lib/actions'
+import { submitMessage } from '@/lib/actions'
+import { getPreferences } from '@/app/account/actions'
 
 import { createAI, getAIState } from 'ai/rsc'
 
 import { BotMessage, UserMessage } from '@/components/chat/message'
+
+async function submitUserMessage(message: string) {
+    'use server'
+
+    const session = await auth()
+
+    if (session && session.user) {
+        const pref = await getPreferences(session.user!.email!) // Get user
+        if (pref) {
+            return submitMessage(message, pref)
+        }
+    }
+
+    return submitMessage(message, {})
+}
 
 export const AI = createAI<AIState, UIState>({
     actions: {

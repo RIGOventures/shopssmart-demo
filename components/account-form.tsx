@@ -22,8 +22,8 @@ export default function EditAccountForm({
 }) {
 
 	const initialState = { message: '', errors: {} };
-	const updatePreferencesWithId = updatePreferences.bind(null, user.id);
-	const [state, formAction] = useFormState(updatePreferencesWithId, initialState);
+	const updatePreferencesWithEmail = updatePreferences.bind(null, user.email);
+	const [state, formAction] = useFormState(updatePreferencesWithEmail, initialState);
 
 	return (
 		<form action={formAction}>

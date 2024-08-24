@@ -17,12 +17,12 @@ export function createMessage(
 	groceryType: string, 
     availableProducts?: string,
 	selectedCategories?: string, 
-	specificDescriptors?: string
+	specificDescriptors?: string,
 ) {
 	let fullSearchCriteria = `Pick one ${groceryType} recommendation`
     + `${
             availableProducts ? 
-            `from the list of related products: ${availableProducts}` : 
+            ` from the list of related products: ${availableProducts}` : 
             ''
         }. `
     + `${
@@ -41,7 +41,7 @@ export function createMessage(
             ''
 		}`
     + `Please only respond with the ${groceryType}'s name, then on the next line, a brief reason for picking that ${groceryType}. `
-	+ `Finally, add a line that includes the link. `
+	+ `Finally, also add the link as a hyperlink to the name. `
     + `Please make sure there is a blank line between each part of this.`
     + `If there are no products listed to recommend, recommend that the user increase the search radius.`
     + `Thank you very much!`

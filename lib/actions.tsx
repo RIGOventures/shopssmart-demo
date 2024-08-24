@@ -3,7 +3,7 @@
 import { type ReactNode } from 'react'
 
 import { ResultCode } from '@/lib/utils/result'
-import type { Product } from "@/lib/types"
+import type { Preferences, Product } from "@/lib/types"
 
 import { headers } from 'next/headers'
 
@@ -19,7 +19,7 @@ import { rateLimit } from '@/lib/services/rate-limit'
 import { nanoid } from '@/lib/utils/nanoid'
 
 import { searchKroger } from './shop/kroger/actions'
-import { searchWalgreens } from './shop/wallgreens/actions'
+import { searchWalgreens } from './shop/walgreens/actions'
 
 import { AxiosError } from 'axios'
 
@@ -27,26 +27,28 @@ import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 
 import { getItemByValue, removeAllExcept } from './utils/dictionary'
 import { createMessage, createPrompt } from './utils/ai-model'
+import { searchProduct } from './shop/other/api-open-food-facts'
 
 // List of product search functions
 
 const array_of_searches = [
+    //searchWalgreens,
     searchKroger,
-    //searchWalgreens
 ]
 
 // Create openai model
 const model = openai('gpt-4-turbo');
 
 // Submit a prompt to a model
-export async function submitPrompt(aiState: any, value: string, 
-    displacement: number, onFinish: () => void) {
+export async function submitPrompt(aiState: any, value: string, preferences: Preferences, 
+    onFinish: (value: string) => void) 
+{
     
-    // Get products from stores
     let location = { latitude: 39.306346, longitude: -84.278902 }
-    // let location = { latitude: 0, longitude: 0 }
+    //let location = { latitude: 0, longitude: 0 }
 
-    let searchResults = await Promise.all(array_of_searches.flatMap(async search => await search([ value ], location)));
+    let searchResults = await Promise.all(
+        array_of_searches.flatMap(async search => await search([ value ], location)));
     const products: Product[] = searchResults.flat()
 
     // Keep certain fields
@@ -56,10 +58,13 @@ export async function submitPrompt(aiState: any, value: string,
     // Generate list of available products
     let availableProducts = JSON.stringify(products)
 
-    // Create message and prompt
+    // Create prompt
     const modelPrompt = createPrompt();
-    const userMessage = createMessage(value, availableProducts)
-    
+
+    // Create message with preferences
+    let categories = (preferences.lifestyle ? preferences.lifestyle : '') + preferences.allergen
+    const userMessage = createMessage(value, availableProducts, categories, preferences.health)
+
     // Create stream elements
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
     let textNode: undefined | ReactNode
@@ -113,23 +118,8 @@ export async function submitPrompt(aiState: any, value: string,
                     console.log(product)
                 }
 
-                // Update ai with the message
-                let currentMessages = aiState.get().messages
-                // Place recommendation every other message
-                currentMessages[displacement] = {
-                    id: nanoid(),
-                    role: 'assistant',
-                    content: content
-                }
-
-                // Update ai state with the new message
-                aiState.update({
-                    ...aiState.get(),
-                    messages: currentMessages
-                })  
-
                 // Call on finish here
-                onFinish()
+                onFinish(content)
 
             } else {
                 // Gradually get text stream from open ai (typing effect)
@@ -153,7 +143,7 @@ async function waitUntil(condition: () => boolean, time = 100) {
     }
 }
 
-export async function submitUserMessage(message: string) {
+export async function submitMessage(message: string, preferences: {}) {
 
     // Rate limit by middleware
 	try {
@@ -189,7 +179,7 @@ export async function submitUserMessage(message: string) {
     const currentMessages = aiState.get().messages
 
     // Split words by white space or comma
-    const words = message.split(/[ ,]+/)
+    const words = message.split(/[,]+/)
 
     // Load responses for each word
     const responses = []
@@ -209,8 +199,25 @@ export async function submitUserMessage(message: string) {
         resolve(currentMessages.length === 0);
     })
 
-    function finishResponse() {
-        responsesLoaded++
+    function createFinishResponse(displacement: number) {
+        return function(content: string) {
+            // Update ai with the message
+            let currentMessages = aiState.get().messages
+            // Place recommendation every other message
+            currentMessages[displacement] = {
+                id: nanoid(),
+                role: 'assistant',
+                content: content
+            }
+
+            // Update ai state with the new message
+            aiState.update({
+                ...aiState.get(),
+                messages: currentMessages
+            })  
+
+            responsesLoaded++
+        }
     }
 
     // Check if request fails
@@ -221,7 +228,7 @@ export async function submitUserMessage(message: string) {
             let word = words[index]
             let displacement = currentMessages.length + index * 2 + 1
 
-            const result = await submitPrompt(aiState, word, displacement, finishResponse)
+            const result = await submitPrompt(aiState, word, preferences, createFinishResponse(displacement))
             responses.push(result)
         }
 
