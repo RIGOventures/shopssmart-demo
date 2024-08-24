@@ -1,6 +1,7 @@
 'use client';
 
 import { User } from '@/lib/types';
+import { ResultCode } from '@/lib/utils/result'
 
 import { useFormState } from 'react-dom'
 
@@ -21,7 +22,7 @@ export default function EditAccountForm({
 	allergens: string[]
 }) {
 
-	const initialState = { message: '', errors: {} };
+	const initialState = { type: '', resultCode: ResultCode.UserLoggedIn, message: '' };
 	const updatePreferencesWithEmail = updatePreferences.bind(null, user.email);
 	const [state, formAction] = useFormState(updatePreferencesWithEmail, initialState);
 
