@@ -1,11 +1,16 @@
 'use server'
 
-import { z } from 'zod';
 import { type ReactNode } from 'react'
 
 import { ResultCode } from '@/lib/utils/result'
-import type { Message, Preferences, Product } from "@/lib/types"
+import type { Message, Preferences } from "@/lib/types"
 import type { AI } from '@/lib/services/ai-state'
+import { LanguageModelV1 } from '@ai-sdk/provider';
+import { JSONClient } from 'google-auth-library/build/src/auth/googleauth'
+
+type Client = JSONClient & { scopes: string | [string] }
+
+import { auth } from 'google-auth-library';
 
 import { headers } from 'next/headers'
 
@@ -27,17 +32,26 @@ import { rateLimit } from '@/lib/services/rate-limit'
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 import { getGCPCredentials } from './utils/env-auth';
 
-// Create Google gemini model
-const vertex = createVertex({
-    googleAuthOptions: getGCPCredentials()
-});
 
-const model = vertex('gemini-1.5-flash', {
-    useSearchGrounding: true,
-    safetySettings: [
-        { category: 'HARM_CATEGORY_UNSPECIFIED', threshold: 'BLOCK_ONLY_HIGH' },
-    ],
-});
+// Create Google gemini model
+let model: LanguageModelV1;
+
+getGCPCredentials().then((credentials: any) => {
+    // Create client
+    const client = auth.fromJSON(credentials) as Client;
+    client.scopes = ['https://www.googleapis.com/auth/cloud-platform']
+    // Authenticate from credentials
+    const vertex = createVertex({ googleAuthOptions: { authClient: client } });
+
+    // Create model
+    model = vertex('gemini-1.5-flash', {
+        useSearchGrounding: true,
+        safetySettings: [
+            { category: 'HARM_CATEGORY_UNSPECIFIED', threshold: 'BLOCK_ONLY_HIGH' },
+        ],
+    });
+
+})
 
 // Submit a prompt to a model
 export async function submitPrompt(aiState: any, value: string, preferences: Preferences, 
