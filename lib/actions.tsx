@@ -11,15 +11,13 @@ import { headers } from 'next/headers'
 
 import { AxiosError } from 'axios'
 
-import { vertex } from '@ai-sdk/google-vertex'
-import { generateText } from 'ai';
+import { createVertex } from '@ai-sdk/google-vertex'
 
 import {
     getMutableAIState,
     streamUI,
     createStreamableValue,
 } from 'ai/rsc'
-import { tool } from 'ai'
 
 import { createInstruction, createPrompt } from '@/lib/utils/ai-model'
 import { nanoid } from '@/lib/utils/nanoid'
@@ -27,8 +25,13 @@ import { nanoid } from '@/lib/utils/nanoid'
 import { rateLimit } from '@/lib/services/rate-limit'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
+import { getGCPCredentials } from './utils/env-auth';
 
 // Create Google gemini model
+const vertex = createVertex({
+    googleAuthOptions: getGCPCredentials()
+});
+
 const model = vertex('gemini-1.5-flash', {
     useSearchGrounding: true,
     safetySettings: [

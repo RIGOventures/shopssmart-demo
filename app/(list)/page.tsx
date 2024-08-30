@@ -1,10 +1,11 @@
 import { Session } from '@/lib/types'
 
-import { getMissingKeys } from '@/app/actions'
 import { nanoid } from '@/lib/utils/nanoid'
 import { auth } from '@/auth'
 
-import { AI } from '../../lib/services/ai-state'
+import { getMissingKeys } from '@/lib/utils/env-auth'
+
+import { AI } from '@/lib/services/ai-state'
 import { Chat } from '@/components/chat'
 
 export const metadata = {

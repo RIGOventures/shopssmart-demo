@@ -3,7 +3,9 @@ import { type Metadata } from 'next'
 
 import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { getChat, getMissingKeys } from '@/app/actions'
+
+import { getMissingKeys } from '@/lib/utils/env-auth'
+import { getChat } from '@/app/actions'
 
 import { AI } from '@/lib/services/ai-state'
 import { Chat } from '@/components/chat'
