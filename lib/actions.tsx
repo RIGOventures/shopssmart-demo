@@ -12,6 +12,7 @@ import { headers } from 'next/headers'
 import { AxiosError } from 'axios'
 
 import { vertex } from '@ai-sdk/google-vertex'
+import { generateText } from 'ai';
 
 import {
     getMutableAIState,
@@ -29,8 +30,7 @@ import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 
 // Create Google gemini model
 const model = vertex('gemini-1.5-flash', {
-    //cachedContent: 'cachedContents/system',
-
+    useSearchGrounding: true,
     safetySettings: [
         { category: 'HARM_CATEGORY_UNSPECIFIED', threshold: 'BLOCK_ONLY_HIGH' },
     ],
@@ -71,16 +71,6 @@ export async function submitPrompt(aiState: any, value: string, preferences: Pre
                 content: userPrompt
             }
         ],
-        tools: {
-            showProduct: tool({
-                description: 'Get the details of a product',
-                parameters: z.object({
-                    productName: z.string(),
-                    productLink: z.string(),
-                    reason: z.string().describe('Reason to buy the grocery item'),
-                })
-            })
-        },
         text: async ({ content, done, delta }) => {
             // Create text stream
             if (!textStream) {
@@ -122,7 +112,7 @@ export async function submitPrompt(aiState: any, value: string, preferences: Pre
             {
                 id: nanoid(),
                 role: 'assistant',
-                content: ""
+                content: "..."
             }
         ]
     })
