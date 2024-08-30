@@ -169,8 +169,18 @@ export async function refreshHistory(path: string) {
     redirect(path)
 }
 
+const keysRequired = [
+    'GOOGLE_VERTEX_PROJECT',
+    'GOOGLE_VERTEX_LOCATION',
+    'GOOGLE_APPLICATION_CREDENTIALS',
+    'KROGER_CLIENT_ID',
+    'KROGER_CLIENT_SECRET',
+    'WALGREENS_API_KEY', 
+    'SPOONACULAR_API_KEY', 
+    'UPC_DATABASE_API_KEY', 
+]
+
 export async function getMissingKeys() {
-    const keysRequired = ['OPENAI_API_KEY', 'SPOONACULAR_API_KEY', 'UPC_DATABASE_API_KEY', 'WALGREENS_API_KEY']
     return keysRequired
         .map(key => (process.env[key] ? '' : key))
         .filter(key => key !== '')

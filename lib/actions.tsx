@@ -1,73 +1,113 @@
 'use server'
 
+import { z } from 'zod';
 import { type ReactNode } from 'react'
 
 import { ResultCode } from '@/lib/utils/result'
-import type { Preferences, Product } from "@/lib/types"
+import type { Message, Preferences, Product } from "@/lib/types"
+import type { AI } from '@/lib/services/ai-state'
 
 import { headers } from 'next/headers'
 
-import type { AI } from '@/lib/services/ai-state'
-import { openai } from '@ai-sdk/openai'
+import { AxiosError } from 'axios'
+
+import { vertex } from '@ai-sdk/google-vertex'
+
 import {
     getMutableAIState,
     streamUI,
-    createStreamableValue
+    createStreamableValue,
 } from 'ai/rsc'
+import { tool } from 'ai'
 
-import { rateLimit } from '@/lib/services/rate-limit'
+import { createInstruction, createPrompt } from '@/lib/utils/ai-model'
 import { nanoid } from '@/lib/utils/nanoid'
 
-import { searchKroger } from './shop/kroger/actions'
-import { searchWalgreens } from './shop/walgreens/actions'
-
-import { AxiosError } from 'axios'
+import { rateLimit } from '@/lib/services/rate-limit'
 
 import { BotMessage, SpinnerMessage } from '@/components/chat/message'
 
-import { getItemByValue, removeAllExcept } from './utils/dictionary'
-import { createMessage, createPrompt } from './utils/ai-model'
-import { searchProduct } from './shop/other/api-open-food-facts'
+// Create Google gemini model
+const model = vertex('gemini-1.5-flash', {
+    //cachedContent: 'cachedContents/system',
 
-// List of product search functions
-
-const array_of_searches = [
-    //searchWalgreens,
-    searchKroger,
-]
-
-// Create openai model
-const model = openai('gpt-4-turbo');
+    safetySettings: [
+        { category: 'HARM_CATEGORY_UNSPECIFIED', threshold: 'BLOCK_ONLY_HIGH' },
+    ],
+});
 
 // Submit a prompt to a model
 export async function submitPrompt(aiState: any, value: string, preferences: Preferences, 
     onFinish: (value: string) => void) 
 {
     
-    let location = { latitude: 39.306346, longitude: -84.278902 }
-    //let location = { latitude: 0, longitude: 0 }
-
-    let searchResults = await Promise.all(
-        array_of_searches.flatMap(async search => await search([ value ], location)));
-    const products: Product[] = searchResults.flat()
-
-    // Keep certain fields
-    let fields = [ "description", "category", "url" ]
-    removeAllExcept(products, fields);
-
-    // Generate list of available products
-    let availableProducts = JSON.stringify(products)
-
-    // Create prompt
-    const modelPrompt = createPrompt();
+    // Create instruction
+    const modelInstruction = createInstruction();
 
     // Create message with preferences
     let categories = (preferences.lifestyle ? preferences.lifestyle : '') + preferences.allergen
-    const userMessage = createMessage(value, availableProducts, categories, preferences.health)
+    const userPrompt = createPrompt(value, categories, preferences.health)
 
     // Create stream elements
     let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
     let textNode: undefined | ReactNode
+
+    // Get the history
+    const history = aiState.get().messages.map((message: Message)=> ({
+        role: message.role,
+        content: message.content
+    }))
+
+    // Query model
+    const result = await streamUI({
+        model: model,
+        initial: <SpinnerMessage />,
+        system: modelInstruction,
+        messages: [
+            ...history,
+            // Add prompt
+            {
+                role: 'user',
+                content: userPrompt
+            }
+        ],
+        tools: {
+            showProduct: tool({
+                description: 'Get the details of a product',
+                parameters: z.object({
+                    productName: z.string(),
+                    productLink: z.string(),
+                    reason: z.string().describe('Reason to buy the grocery item'),
+                })
+            })
+        },
+        text: async ({ content, done, delta }) => {
+            // Create text stream
+            if (!textStream) {
+                textStream = createStreamableValue('')
+                textNode = <BotMessage content={textStream.value} />
+            }
+    
+            // Update text stream
+            if (done) {  
+                textStream.done()
+
+                // Get choice
+                const [, description, reason ] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
+                
+                //console.log(product)
+
+                // Call on finish here
+                onFinish(content)
+
+            } else {
+                // Gradually get text stream from open ai (typing effect)
+                textStream.update(delta)
+            }
+
+            return textNode
+        }
+    })
 
     // Update ai state with the new message
     aiState.update({
@@ -85,49 +125,6 @@ export async function submitPrompt(aiState: any, value: string, preferences: Pre
                 content: ""
             }
         ]
-    })
-
-    // Query model
-    const result = await streamUI({
-        model: model,
-        initial: <SpinnerMessage />,
-        system: modelPrompt,
-        messages: [
-            ...aiState.get().messages.map((message: any) => ({
-                role: message.role,
-                content: userMessage
-            }))
-        ],
-        text: async ({ content, done, delta }) => {
-            // Create text stream
-            if (!textStream) {
-                textStream = createStreamableValue('')
-                textNode = <BotMessage content={textStream.value} />
-            }
-    
-            // Update text stream
-            if (done) {  
-                textStream.done()
-
-                // Get choice
-                const [, description, reason ] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
-                
-                // Get product
-                const product = getItemByValue(products, "description", description)
-                if (product) {
-                    console.log(product)
-                }
-
-                // Call on finish here
-                onFinish(content)
-
-            } else {
-                // Gradually get text stream from open ai (typing effect)
-                textStream.update(delta)
-            }
-
-            return textNode
-        }
     })
 
     return {

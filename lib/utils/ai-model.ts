@@ -1,30 +1,31 @@
-// Design model prompt
-const prompt = `\
-    You are a grocery shopping conversation bot and you help recommend users to buy certain groceries.
-    You and the user can discuss reasons to buy certain groceries, in the UI.
-    
-    If the user wants to buy groceries, or complete another impossible task, respond that you are a demo and cannot do that.
-    
-    Besides that, you cannot interact with the user.
-    Thank you for your help! It's greatly appreciated.`
 
+// https://ai.google.dev/gemini-api/docs/system-instructions?lang=node
 
-export function createPrompt() {
-    return prompt
+// Create system instruction
+const instruction = `\
+    You are an assistant for grocery shoppers.
+    You receive a product name with categories and descriptors and respond with a specific grocery item that match these descriptors.
+
+    Your response must consist of the following parts:
+    The name of the grocery item with with a short hyperlink to purchase the grocery item.
+    A blank line.
+    A brief reason for picking that grocery item.
+
+    If you cannot find pick any products, suggest that the user change their preferences.
+
+    You can access external websites or databases to get product information.
+    Thank you for your help!`
+
+export function createInstruction() {
+    return instruction
 }
 
-export function createMessage(
-	groceryType: string, 
-    availableProducts?: string,
-	selectedCategories?: string, 
+export function createPrompt(
+    groceryType: string, 
+    selectedCategories?: string, 
 	specificDescriptors?: string,
 ) {
-	let fullSearchCriteria = `Pick one ${groceryType} recommendation`
-    + `${
-            availableProducts ? 
-            ` from the list of related products: ${availableProducts}` : 
-            ''
-        }. `
+    let fullSearchCriteria = `Suggest one ${groceryType} recommendation`
     + `${
             selectedCategories ? 
             `Make sure that is fits all of the following categories: ${selectedCategories}. ` : 
@@ -40,11 +41,23 @@ export function createMessage(
             `If you cannot pick a recommendation that fit these criteria perfectly, select the one that best matches. ` :
             ''
 		}`
-    + `Please only respond with the ${groceryType}'s name, then on the next line, a brief reason for picking that ${groceryType}. `
-	+ `Finally, also add the link as a hyperlink to the name. `
-    + `Please make sure there is a blank line between each part of this.`
-    + `If there are no products listed to recommend, recommend that the user increase the search radius.`
-    + `Thank you very much!`
+
+	return fullSearchCriteria
+}
+
+export function createPromptGivenProducts(
+	groceryType: string, 
+    availableProducts?: string,
+	selectedCategories?: string, 
+	specificDescriptors?: string,
+) {
+	let fullSearchCriteria = 
+        `${
+            availableProducts ? 
+            `Use this list of related products: ${availableProducts}` : 
+            ''
+        }. `
+    + createPrompt(groceryType, selectedCategories, specificDescriptors)
 
 	return fullSearchCriteria
 }

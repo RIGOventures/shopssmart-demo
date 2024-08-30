@@ -27,6 +27,7 @@ export async function searchUPCItem(item: string) {
 
 }
 
+// https://upcdatabase.org/api-product-get
 export async function getUPCInformation(upc: string | number) { 
 
     // Create request url

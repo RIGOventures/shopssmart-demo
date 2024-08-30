@@ -38,6 +38,7 @@ export async function searchProduct(item: string, number = 10) {
 
 }
 
+// https://spoonacular.com/food-api/docs#Get-Product-Information
 export async function getProductInformation(id: number) { 
 
     // Create request url
