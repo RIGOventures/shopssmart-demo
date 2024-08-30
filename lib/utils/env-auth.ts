@@ -18,15 +18,10 @@ export async function getMissingKeys() {
 }
 
 export const getGCPCredentials = () => {
-    // for Vercel, use environment variables
-    return process.env.GCP_PRIVATE_KEY
-      ? {
-            credentials: {
-                client_email: process.env.GCP_SERVICE_ACCOUNT_EMAIL!,
-                private_key: process.env.GCP_PRIVATE_KEY,
-            },
-            projectId: process.env.GCP_PROJECT_ID!,
-        }
-        // for local development, defer to default
-      : undefined;
-  };
+    const credentials = JSON.parse(
+        Buffer.from(process.env.GOOGLE_SERVICE_KEY || '', "base64").toString()
+    );
+
+    // https://github.com/orgs/vercel/discussions/219#discussioncomment-128702
+    return credentials
+}
