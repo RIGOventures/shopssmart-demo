@@ -1,10 +1,11 @@
 import { Session } from '@/lib/types'
 
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 
 import EditAccountForm from "@/components/account-form";
-import { getUser } from '../login/actions';
+import { deauthenticate, getUser } from '../login/actions';
+import { useEffect } from 'react';
 
 const dietPlanTypes = [
     'Vegan',

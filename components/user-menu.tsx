@@ -1,6 +1,6 @@
 import { type Session } from '@/lib/types'
 
-import { signOut } from '@/auth'
+import { deauthenticate } from '@/app/login/actions'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -51,10 +51,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <DropdownMenuSeparator />
                 
                 <form
-                    action={async () => {
-                        'use server'
-                        await signOut()
-                    }}
+                    action={deauthenticate}
                 >
                     <button className=" relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none transition-colors hover:bg-red-500 hover:text-white focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                         Sign Out

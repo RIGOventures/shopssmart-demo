@@ -24,7 +24,7 @@ export const viewport = {
 	  	{ media: '(prefers-color-scheme: light)', color: 'white' },
 	  	{ media: '(prefers-color-scheme: dark)', color: 'black' }
 	]
-  }
+}
 
 interface RootLayoutProps {
 	children: React.ReactNode

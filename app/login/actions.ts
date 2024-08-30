@@ -6,7 +6,7 @@ import { AuthError } from 'next-auth'
 
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
-import { signIn } from '@/auth'
+import { signIn, signOut } from '@/auth'
 
 const UserSchema = z.object({
     id: z.string(),
@@ -77,4 +77,8 @@ export async function authenticate(
 			}
 	  	}
 	}
-  }
+}
+
+export async function deauthenticate() { 
+	await signOut() 
+}

@@ -5,12 +5,17 @@ import { ResultCode } from '@/lib/utils/result'
 
 import { useFormState } from 'react-dom'
 
+import { notFound, redirect } from 'next/navigation'
+
+import { useCallback, useEffect, useState } from 'react';
+
 import {
 	HeartIcon,
 	UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { updatePreferences } from '@/app/account/actions';
+import { deauthenticate } from '@/app/login/actions';
 
 export default function EditAccountForm({
 	user,
@@ -22,8 +27,21 @@ export default function EditAccountForm({
 	allergens: string[]
 }) {
 
+	if (!user) {
+		const checkUser = useCallback(async () => {
+			await deauthenticate()
+			redirect(`/`) 
+		}, [user])
+
+		useEffect(() => {
+			checkUser()
+		}, [checkUser]);
+
+        return notFound()
+    }
+
 	const initialState = { type: '', resultCode: ResultCode.UserLoggedIn, message: '' };
-	const updatePreferencesWithEmail = updatePreferences.bind(null, user.email);
+	const updatePreferencesWithEmail = updatePreferences.bind(null, user?.email);
 	const [state, formAction] = useFormState(updatePreferencesWithEmail, initialState);
 
 	return (
