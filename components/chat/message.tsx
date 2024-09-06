@@ -7,7 +7,7 @@ import remarkMath from 'remark-math'
 import { StreamableValue, useStreamableValue } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 
-import { spinner } from './spinner'
+import { spinner } from '../ui/spinner'
 import { MemoizedReactMarkdown } from '../markdown'
 import { QuestionMarkCircleIcon, UserIcon } from '@heroicons/react/24/outline';
 

@@ -8,7 +8,7 @@ import { useAIState, useUIState } from 'ai/rsc'
 import { shareChat } from '@/app/actions'
 
 import { Button } from '@/components/ui/button'
-import { ChatShareDialog } from '@/components/chat-share-dialog'
+import { ChatShareDialog } from '@/components/input/chat-share-dialog'
 import { ButtonScrollToBottom } from '@/components/ui/icons'
 import { ShareIcon } from '@heroicons/react/24/outline';
 import { PromptForm } from './chat-form'

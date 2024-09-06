@@ -10,6 +10,7 @@ import { auth } from '@/auth'
 import { ShoppingCartIcon, SlashIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/header/user-menu'
+import { ThemeToggle } from '@/components/header/theme-toggle'
 import { SidebarMobile } from './sidebar/sidebar-mobile'
 import { SidebarToggle } from './sidebar/sidebar-toggle'
 import { ChatHistory } from './sidebar/chat-history'
@@ -34,6 +35,7 @@ async function UserOrLogin() {
 				)
 			}
 			<div className="flex items-center">
+				<ThemeToggle />
 				<SlashIcon className="size-6 text-muted-foreground/50" />
 				{
 					session?.user ? (

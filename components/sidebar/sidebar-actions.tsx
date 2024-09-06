@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { IconSpinner } from '@/components/ui/icons'
 import { ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { ChatShareDialog } from '@/components/chat-share-dialog'
+import { ChatShareDialog } from '@/components/input/chat-share-dialog'
 import {
     Tooltip,
     TooltipContent,
