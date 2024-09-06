@@ -3,7 +3,7 @@ import { Session } from '@/lib/types'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 
-import LoginForm from '@/components/login-form'
+import LoginForm from '@/components/input/login-form'
 
 export default async function LoginPage() {
     const session = (await auth()) as Session

@@ -3,7 +3,7 @@ import { Session } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 
-import EditAccountForm from "@/components/account-form";
+import EditAccountForm from "@/components/input/account-form";
 import { deauthenticate, getUser } from '../login/actions';
 import { useEffect } from 'react';
 

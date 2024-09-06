@@ -9,7 +9,7 @@ import { authenticate } from '@/app/login/actions'
 import { toast } from 'sonner'
 import { getMessageFromCode } from '@/lib/utils/result'
 
-import { IconSpinner } from './ui/icons'
+import { IconSpinner } from '../ui/icons'
 import LoginButton from './login-button'
 
 export default function LoginForm() {

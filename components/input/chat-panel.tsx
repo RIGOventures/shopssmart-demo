@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
 import { ButtonScrollToBottom } from '@/components/ui/icons'
 import { ShareIcon } from '@heroicons/react/24/outline';
-import { PromptForm } from './prompt-form'
+import { PromptForm } from './chat-form'
 
 export interface ChatPanelProps {
     id?: string

@@ -9,10 +9,10 @@ import { auth } from '@/auth'
 
 import { ShoppingCartIcon, SlashIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button'
-import { UserMenu } from '@/components/user-menu'
-import { SidebarMobile } from './sidebar-mobile'
-import { SidebarToggle } from './sidebar-toggle'
-import { ChatHistory } from './chat-history'
+import { UserMenu } from '@/components/header/user-menu'
+import { SidebarMobile } from './sidebar/sidebar-mobile'
+import { SidebarToggle } from './sidebar/sidebar-toggle'
+import { ChatHistory } from './sidebar/chat-history'
 
 async function UserOrLogin() {
 	const session = (await auth()) as Session

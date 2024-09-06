@@ -11,9 +11,9 @@ import { toast } from 'sonner'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 
-import { ChatList } from '@/components/chat-list'
-import { ChatPanel } from '@/components/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
+import { ChatList } from '@/components/chat/chat-list'
+import { ChatPanel } from '@/components/input/chat-panel'
+import { EmptyScreen } from '@/components/chat/empty-screen'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
     initialMessages?: Message[]

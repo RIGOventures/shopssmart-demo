@@ -2,7 +2,7 @@
 
 import { useFormStatus } from 'react-dom'
 
-import { IconSpinner } from './ui/icons'
+import { IconSpinner } from '../ui/icons'
 
 export default function LoginButton({ label }: { label: string }) {
 	const { pending } = useFormStatus()

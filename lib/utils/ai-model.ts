@@ -11,8 +11,10 @@ const instruction = `\
     A blank line.
     A brief reason for picking that grocery item.
 
-    If you cannot pick a recommendation that fit these criteria perfectly, select the one that best matches.
+    If you cannot pick a grocery recommendation that fit these criteria perfectly, select the one that best matches.
     You must select a grocery product. 
+
+    You must select from products shown available or listed from a search now.
 
     Thank you for your help!`
 
@@ -25,7 +27,7 @@ export function createPrompt(
     selectedCategories?: string, 
 	specificDescriptors?: string,
 ) {
-    let fullSearchCriteria = `Suggest one ${groceryType} recommendation`
+    let fullSearchCriteria = `Suggest one ${groceryType} recommendation to eat from a search now. `
     + `${
             selectedCategories ? 
             `Make sure that is fits all of the following categories: ${selectedCategories}. ` : 

@@ -5,7 +5,7 @@ import { type AI } from '@/lib/services/ai-state'
 import { ReactNode, useEffect, useRef, useTransition } from 'react'
 import { useActions, useAIState, useUIState } from 'ai/rsc'
 
-import { SpinnerMessage, UserMessage } from './chat/message'
+import { SpinnerMessage, UserMessage } from '../chat/message'
 
 import { nanoid } from '@/lib/utils/nanoid'
 import { useRouter } from 'next/navigation'

@@ -9,7 +9,7 @@ import { signup } from '@/app/signup/actions'
 import { toast } from 'sonner'
 import { getMessageFromCode } from '@/lib/utils/result'
 
-import { IconSpinner } from './ui/icons'
+import { IconSpinner } from '../ui/icons'
 import LoginButton from './login-button'
 
 
