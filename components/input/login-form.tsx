@@ -9,8 +9,7 @@ import { authenticate } from '@/app/login/actions'
 import { toast } from 'sonner'
 import { getMessageFromCode } from '@/lib/utils/result'
 
-import { IconSpinner } from '../ui/icons'
-import LoginButton from './login-button'
+import SubmitButton from './submit-button'
 
 export default function LoginForm() {
     const router = useRouter()
@@ -73,7 +72,7 @@ export default function LoginForm() {
                         </div>
                     </div>
                 </div>
-                <LoginButton label="Log in" />
+                <SubmitButton label="Log in" />
             </div>
 
             <Link

@@ -1,48 +1,73 @@
 'use client';
 
-import { User } from '@/lib/types';
-import { ResultCode } from '@/lib/utils/result'
-
 import { useFormState } from 'react-dom'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
 
-import { notFound, redirect } from 'next/navigation'
+import { getMessageFromCode } from '@/lib/utils/result'
 
-import { useCallback, useEffect, useState } from 'react';
+import { getPreferences, updatePreferences } from '@/app/account/actions';
+
+import { toast } from 'sonner'
 
 import {
 	HeartIcon,
 	UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { updatePreferences } from '@/app/account/actions';
-import { deauthenticate } from '@/app/login/actions';
+import SubmitButton from './submit-button'
+import { Preferences } from '@/lib/types';
+import { useForm } from 'react-hook-form';
 
-export default function EditAccountForm({
-	user,
-	lifestyles,
-	allergens
-}: {
-	user: User;
-	lifestyles: string[];
-	allergens: string[]
-}) {
+const dietPlanTypes = [
+    'Vegan',
+    'Ketogenic',
+    'Low-carb',
+    'Mediterranean'
+];
 
-	if (!user) {
-		const checkUser = useCallback(async () => {
-			await deauthenticate()
-			redirect(`/`) 
-		}, [user])
+const allergyTypes = [
+    'Nuts',
+    'Dairy'
+];
 
-		useEffect(() => {
-			checkUser()
-		}, [checkUser]);
+interface Props {
+    userId?: string
+}
 
-        return notFound()
-    }
+export default function EditAccountForm({ userId }: Props) {
+	const router = useRouter()
 
-	const initialState = { type: '', resultCode: ResultCode.UserLoggedIn, message: '' };
-	const updatePreferencesWithEmail = updatePreferences.bind(null, user?.email);
-	const [state, formAction] = useFormState(updatePreferencesWithEmail, initialState);
+	// Get current preference
+	const { register, handleSubmit, reset } = useForm<Preferences>({
+		defaultValues: {
+			lifestyle: '', 
+			allergen: '', 
+			health: '', 
+		},
+	});
+
+	// Augment submit aciton
+	const updatePreferencesWithId = updatePreferences.bind(null, userId!);
+	const [result, formAction] = useFormState(updatePreferencesWithId, undefined);
+
+	// Add toast to update state change
+    useEffect(() => {
+        if (result) {
+            if (result.type === 'error') {
+                toast.error(getMessageFromCode(result.resultCode))
+            } else {
+                toast.success(getMessageFromCode(result.resultCode))
+                router.push("/")
+            }
+        }
+    }, [result, router])
+
+	// Get latest preference
+	useEffect(() => {
+        getPreferences(userId).then((res: Preferences | null) => {
+			if (res) reset(res)
+		})
+    }, [reset])
 
 	return (
 		<form action={formAction}>
@@ -56,14 +81,13 @@ export default function EditAccountForm({
 					<div className="relative">
 						<select
 							id="lifestyle"
-							name="lifestyle"
-							className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-							defaultValue={''}
+							className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 dark:border-zinc-800 dark:bg-zinc-950"
+							{...register("lifestyle")}
 						>
 						<option value="" disabled>
 							Select a lifestyle
 						</option>
-							{lifestyles.map((lifestyle) => (
+							{dietPlanTypes.map((lifestyle) => (
 								<option key={lifestyle} value={lifestyle}>
 									{lifestyle}
 								</option>
@@ -81,14 +105,13 @@ export default function EditAccountForm({
 					<div className="relative">
 						<select
 							id="allergen"
-							name="allergen"
-							className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-							defaultValue={''}
+							className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 dark:border-zinc-800 dark:bg-zinc-950"
+							{...register("allergen")}
 						>
 						<option value="" disabled>
 							Select an allergen
 						</option>
-							{allergens.map((allergen) => (
+							{allergyTypes.map((allergen) => (
 								<option key={allergen} value={allergen}>
 									{allergen}
 								</option>
@@ -106,27 +129,18 @@ export default function EditAccountForm({
 					<div className="relative mt-2 rounded-md">
 						<div className="relative">
 							<input
+								{...register("health")}
 								id="health"
-								name="health"
 								type="text"
-								defaultValue={''}
 								placeholder="Enter dietary restriction"
-								className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+								className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 dark:border-zinc-800 dark:bg-zinc-950"
 							/>
 							<HeartIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
 						</div>
 					</div>
 				</fieldset>
 			</div>
-			<div className="mt-6 flex justify-end gap-4">
-				<Link
-					href="/"
-					className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
-				>
-					Cancel
-				</Link>
-					<button type="submit">Edit Preferences</button>
-			</div>
+			<SubmitButton label="Save" />
 		</form>
 	);
 }

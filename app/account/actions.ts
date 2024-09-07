@@ -1,9 +1,7 @@
 'use server'
 
+import type { Preferences, Result } from '@/lib/types';
 import { ResultCode } from '@/lib/utils/result'
-
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
@@ -14,7 +12,7 @@ const UpdateSchema = z.object({
     health: z.string().nullable(),
 });
 
-export async function updatePreferences(email: string, prevState: {}, formData: FormData) {
+export async function updatePreferences(userId: string, prevState: Result | undefined, formData: FormData) {
     const rawFormData = {
         lifestyle: formData.get('lifestyle'),
         allergen: formData.get('allergen') || 'None',
@@ -26,8 +24,7 @@ export async function updatePreferences(email: string, prevState: {}, formData: 
     if (!validatedFields.success) {
         return {
             type: 'error',
-            resultCode: ResultCode.InvalidSubmission,
-            message: 'Missing Fields. Failed to Edit Preferences.',
+            resultCode: ResultCode.InvalidSubmission
         };
     }
 
@@ -40,15 +37,19 @@ export async function updatePreferences(email: string, prevState: {}, formData: 
     } 
 
     console.log(preferences)
-    await kv.hset(`user:preferences:${email}`, preferences)
+    await kv.hset(`user:preferences:${userId}`, preferences)
 
-    revalidatePath('/')
-    redirect('/')
+    return {
+        type: 'success',
+        resultCode: ResultCode.UserUpdated
+    };
 }
 
-export async function getPreferences(email: string) {
+export async function getPreferences(userId?: string | null) 
+: Promise<Preferences | null> 
+{
 	try {
-		const pref = await kv.hgetall(`user:preferences:${email}`)
+		const pref = await kv.hgetall(`user:preferences:${userId}`)
   		return pref
 	} catch (error) {
 		console.error('Failed to fetch user:', error);

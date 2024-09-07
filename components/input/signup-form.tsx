@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { getMessageFromCode } from '@/lib/utils/result'
 
 import { IconSpinner } from '../ui/icons'
-import LoginButton from './login-button'
+import LoginButton from './submit-button'
 
 
 export default function SignupForm() {

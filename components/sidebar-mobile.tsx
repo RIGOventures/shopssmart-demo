@@ -1,7 +1,7 @@
 'use client'
 
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Sidebar } from '@/components/sidebar'
+import { Sidebar } from '@/components/sidebar/sidebar'
 import { Button } from '@/components/ui/button'
 
 import { Bars3Icon } from '@heroicons/react/24/outline';

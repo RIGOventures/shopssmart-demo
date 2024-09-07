@@ -38,6 +38,7 @@
 		"random-useragent": "^0.5.0",
 		"react": "19.0.0-rc-f38c22b244-20240704",
 		"react-dom": "19.0.0-rc-f38c22b244-20240704",
+		"react-hook-form": "^7.53.0",
 		"react-markdown": "^9.0.1",
 		"react-textarea-autosize": "^8.5.3",
 		"remark-gfm": "^4.0.0",
