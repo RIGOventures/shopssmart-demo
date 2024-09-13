@@ -43,6 +43,11 @@ export interface User extends Record<string, any> {
     password: string
 }
 
+export interface Profile extends Record<string, any> {
+    id: string
+    name: string
+}
+
 export interface Preferences {
     lifestyle?: string, 
     allergen?: string, 

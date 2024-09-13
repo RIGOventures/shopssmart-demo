@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/header/theme-toggle'
 import { SidebarMobile } from './sidebar-mobile'
 import { SidebarToggle } from './sidebar/sidebar-toggle'
 import { ChatHistory } from './sidebar/chat-history'
+import { ProfileMenu } from './header/profile-menu';
 
 async function UserOrLogin() {
 	const session = (await auth()) as Session
@@ -39,7 +40,11 @@ async function UserOrLogin() {
 				<SlashIcon className="size-6 text-muted-foreground/50" />
 				{
 					session?.user ? (
-						<UserMenu user={session.user} />
+						<div className="flex items-center justify-between">
+							<UserMenu user={session.user} />
+							<SlashIcon className="size-6 text-muted-foreground/50" />
+							<ProfileMenu profiles={[{id:'', name:'Default'}]} />
+						</div>
 					) : (
 						<Button variant="link" asChild className="-ml-2">
 							<Link href="/login">Login</Link>
