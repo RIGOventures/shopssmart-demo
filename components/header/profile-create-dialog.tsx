@@ -22,7 +22,7 @@ import { getMessageFromCode } from '@/lib/utils/result';
 
 interface ProfileCreateDialogProps extends DialogProps {
     user: Session['user'],
-    createProfile: (userId: string, prevState: Result | undefined, formData: FormData) => Result
+    createProfile: (userId: string, prevState: Result | undefined, formData: FormData) => Promise<Result>
     onCreate: () => void
 }
 
@@ -66,7 +66,16 @@ export function ProfileCreateDialog({
 
                 <DialogFooter className="items-center">
 
-                    <form action={formAction} className="w-full flex justify-between">
+                    <form 
+                        action={formAction} 
+                        className="w-full flex justify-between"
+                        onSubmit={() => {
+                            startCreateTransition(async () => {
+                                // Purely aesthetic
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                            })
+                        }}
+                    >
 
                         <input
                             name="profileName"
