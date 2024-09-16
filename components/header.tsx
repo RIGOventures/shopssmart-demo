@@ -1,23 +1,39 @@
 import { Session } from '@/lib/types'
 
 import * as React from 'react'
+import { Suspense, cache } from 'react';
 import Link from 'next/link'
 
-import { Suspense } from 'react';
+import { getProfiles } from '@/app/actions';
 
 import { auth } from '@/auth'
 
-import { ShoppingCartIcon, SlashIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/header/user-menu'
 import { ThemeToggle } from '@/components/header/theme-toggle'
 import { SidebarMobile } from './sidebar-mobile'
 import { SidebarToggle } from './sidebar/sidebar-toggle'
 import { ChatHistory } from './sidebar/chat-history'
-import { ProfileMenu } from './header/profile-menu';
+
+import { ShoppingCartIcon, SlashIcon } from '@heroicons/react/24/outline';
+import { ProfilePanel } from './header/profile-panel';
+
+const loadProfiles = cache(async (userId?: string) => {
+    return await getProfiles(userId)
+})
 
 async function UserOrLogin() {
+	
 	const session = (await auth()) as Session
+
+	const result = await loadProfiles(session.user.id)
+    if (result && 'error' in result) {
+        toast.error(result.error)
+        return
+    }
+
 	return (
 		<>
 			{
@@ -43,7 +59,7 @@ async function UserOrLogin() {
 						<div className="flex items-center justify-between">
 							<UserMenu user={session.user} />
 							<SlashIcon className="size-6 text-muted-foreground/50" />
-							<ProfileMenu profiles={[{id:'', name:'Default'}]} />
+							<ProfilePanel profiles={result} user={session.user} />
 						</div>
 					) : (
 						<Button variant="link" asChild className="-ml-2">

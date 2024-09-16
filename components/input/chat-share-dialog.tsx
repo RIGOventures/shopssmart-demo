@@ -1,9 +1,10 @@
 'use client'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
+import { type DialogProps } from '@radix-ui/react-dialog'
 
 import * as React from 'react'
-import { type DialogProps } from '@radix-ui/react-dialog'
+
 import { toast } from 'sonner'
 
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
@@ -77,8 +78,8 @@ export function ChatShareDialog({
                                 const result = await shareChat(chat.id)
 
                                 if (result && 'error' in result) {
-                                toast.error(result.error)
-                                return
+                                    toast.error(result.error)
+                                    return
                                 }
 
                                 copyShareLink(result)

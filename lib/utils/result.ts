@@ -4,6 +4,7 @@ export enum ResultCode {
     UserAlreadyExists   = 'USER_ALREADY_EXISTS',
     UnknownError        = 'UNKNOWN_ERROR',
     UserCreated         = 'USER_CREATED',
+    ProfileCreated      = 'PROFILE_CREATED',
     UserUpdated         = 'USER_UPDATED',
     UserLoggedIn        = 'USER_LOGGED_IN',
     RateLimited         = "RATE_LIMIT_EXCEEDED"
@@ -21,6 +22,8 @@ export const getMessageFromCode = (resultCode: string) => {
             return 'User created, welcome!'
         case ResultCode.UserUpdated:
             return 'User settings updated!'
+        case ResultCode.ProfileCreated:
+            return 'Profile created'
         case ResultCode.UnknownError:
             return 'Something went wrong, please try again!'
         case ResultCode.UserLoggedIn:

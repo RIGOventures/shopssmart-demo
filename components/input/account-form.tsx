@@ -1,8 +1,12 @@
 'use client';
 
-import { useFormState } from 'react-dom'
-import { useRouter } from 'next/navigation'
+import { Preferences } from '@/lib/types';
+
 import { useEffect, useState } from 'react';
+import { useFormState } from 'react-dom'
+import { useForm } from 'react-hook-form';
+
+import { useRouter } from 'next/navigation'
 
 import { getMessageFromCode } from '@/lib/utils/result'
 
@@ -10,13 +14,12 @@ import { getPreferences, updatePreferences } from '@/app/account/actions';
 
 import { toast } from 'sonner'
 
+import SubmitButton from './submit-button'
+
 import {
 	HeartIcon,
 	UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import SubmitButton from './submit-button'
-import { Preferences } from '@/lib/types';
-import { useForm } from 'react-hook-form';
 
 const dietPlanTypes = [
     'Vegan',
@@ -31,10 +34,10 @@ const allergyTypes = [
 ];
 
 interface Props {
-    userId?: string
+    profileId?: string
 }
 
-export default function EditAccountForm({ userId }: Props) {
+export default function EditAccountForm({ profileId }: Props) {
 	const router = useRouter()
 
 	// Get current preference
@@ -47,7 +50,7 @@ export default function EditAccountForm({ userId }: Props) {
 	});
 
 	// Augment submit aciton
-	const updatePreferencesWithId = updatePreferences.bind(null, userId!);
+	const updatePreferencesWithId = updatePreferences.bind(null, profileId!);
 	const [result, formAction] = useFormState(updatePreferencesWithId, undefined);
 
 	// Add toast to update state change
@@ -64,10 +67,10 @@ export default function EditAccountForm({ userId }: Props) {
 
 	// Get latest preference
 	useEffect(() => {
-        getPreferences(userId).then((res: Preferences | null) => {
+        getPreferences(profileId).then((res: Preferences | null) => {
 			if (res) reset(res)
 		})
-    }, [reset])
+    }, [reset, profileId])
 
 	return (
 		<form action={formAction}>

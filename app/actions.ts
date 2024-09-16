@@ -1,14 +1,64 @@
 'use server'
 
-import { type Chat } from '@/lib/types'
+import { Log, Chat, Profile, Result } from '@/lib/types'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+
+import { z } from 'zod'
 import { kv } from '@vercel/kv'
 
-import { auth } from '@/auth'
+import { nanoid } from '@/lib/utils/nanoid'
 
-export async function getChats(userId?: string | null) {
+import { auth } from '@/auth'
+import { getUser } from './login/actions'
+import { ResultCode } from '@/lib/utils/result'
+
+export async function refreshHistory(path: string) {
+    redirect(path)
+}
+
+async function createRecord(tag: string, record: Log) {
+    const session = await auth()
+
+    if (session && session.user) {
+        const pipeline = kv.pipeline()
+
+        pipeline.hset(`${tag}:${record.id}`, record)
+        pipeline.zadd(`user:${tag}:${record.userId}`, {
+            score: Date.now(), // Sort by date
+            member: `${tag}:${record.id}` // The actual value
+        })
+
+        await pipeline.exec()
+    } else {
+        return
+    }
+}
+
+async function deleteRecord(tag: string, id: string) {
+    const session = await auth()
+
+    if (!session) {
+        return {
+            error: 'Unauthorized'
+        }
+    }
+
+    // Convert uid to string for consistent comparison with session.user.id
+    const uid = String(await kv.hget(`${tag}:${id}`, 'userId'))
+
+    if (uid !== session?.user?.id) {
+        return {
+            error: 'Unauthorized'
+        }
+    }
+
+    await kv.del(`${tag}:${id}`)
+    await kv.zrem(`user:${tag}:${session.user.id}`, `${tag}:${id}`)
+}
+
+async function getRecords<T extends Log>(tag: string, userId?: string | null) {
     const session = await auth()
 
     if (!userId) {
@@ -23,25 +73,25 @@ export async function getChats(userId?: string | null) {
 
     try {
         const pipeline = kv.pipeline()
-        // Fetch all the chats stored with the user in reverse order
-        const chats: string[] = await kv.zrange(`user:chat:${userId}`, 0, -1, {
+        // Fetch all the records stored with the user in reverse order
+        const records: string[] = await kv.zrange(`user:${tag}:${userId}`, 0, -1, {
             rev: true
         })
 
-        // Get all chats saved
-        for (const chat of chats) {
-            pipeline.hgetall(chat)
+        // Get all records saved
+        for (const record of records) {
+            pipeline.hgetall(record)
         }
 
         const results = await pipeline.exec()
 
-        return results as Chat[]
+        return results as T[]
     } catch (error) {
         return []
     }
 }
 
-export async function getChat(id: string, userId: string) {
+async function getRecord<T extends Log>(tag: string, id: string, userId: string) {
     const session = await auth()
     
     if (userId !== session?.user?.id) {
@@ -50,35 +100,29 @@ export async function getChat(id: string, userId: string) {
         }
     }
 
-    const chat = await kv.hgetall<Chat>(`chat:${id}`)
+    const record = await kv.hgetall<T>(`${tag}:${id}`)
 
-    if (!chat || (userId && chat.userId !== userId)) {
+    if (!record || (userId && record.userId !== userId)) {
         return null
     }
 
-    return chat
+    return record
+}
+
+/**
+ * Chat actions
+ */
+
+export async function getChats(userId?: string | null) {
+    return getRecords<Chat>('chat', userId)
+}
+
+export async function getChat(id: string, userId: string) {
+    return getRecord<Chat>('chat', id, userId)
 }
 
 export async function removeChat({ id, path }: { id: string; path: string }) {
-    const session = await auth()
-
-    if (!session) {
-        return {
-            error: 'Unauthorized'
-        }
-    }
-
-    // Convert uid to string for consistent comparison with session.user.id
-    const uid = String(await kv.hget(`chat:${id}`, 'userId'))
-
-    if (uid !== session?.user?.id) {
-        return {
-            error: 'Unauthorized'
-        }
-    }
-
-    await kv.del(`chat:${id}`)
-    await kv.zrem(`user:chat:${session.user.id}`, `chat:${id}`)
+    await deleteRecord('chat', id)
 
     revalidatePath('/')
     return revalidatePath(path)
@@ -148,23 +192,78 @@ export async function shareChat(id: string) {
 }
 
 export async function saveChat(chat: Chat) {
-    const session = await auth()
-
-    if (session && session.user) {
-        const pipeline = kv.pipeline()
-
-        pipeline.hset(`chat:${chat.id}`, chat)
-        pipeline.zadd(`user:chat:${chat.userId}`, {
-            score: Date.now(), // Sort by date
-            member: `chat:${chat.id}` // The actual value
-        })
-
-        await pipeline.exec()
-    } else {
-        return
-    }
+    return createRecord('chat', chat)
 }
 
-export async function refreshHistory(path: string) {
-    redirect(path)
+/**
+ * Profile actions
+ */
+
+export async function getProfiles(userId?: string | null) {
+    return getRecords<Profile>('profile', userId)
+}
+
+export async function getProfile(id: string, userId: string) {
+    return getRecord<Profile>('profile', id, userId)
+}
+
+const ProfileSchema = z.object({
+    name: z.string()
+});
+
+export async function createProfile(userId: string, prevState: Result | undefined, formData: FormData) {
+    const rawFormData = {
+        name: formData.get('profileName')
+    };
+
+    const validatedFields = ProfileSchema.safeParse(rawFormData);
+    // If form validation fails, return errors early. Otherwise, continue.
+    if (!validatedFields.success) {
+        return {
+            type: 'error',
+            resultCode: ResultCode.InvalidSubmission
+        };
+    }
+
+    const { name } = validatedFields.data;
+
+    const profile: Profile = {
+        id: nanoid(),
+        userId,
+        name
+    }
+
+    await createRecord('profile', profile)
+
+    return {
+        type: 'success',
+        resultCode: ResultCode.ProfileCreated
+    };
+}
+
+export async function deleteProfile(id: string) {
+    return deleteRecord('profile', id)
+}
+
+export async function setProfile(email: string, profileId: string) {
+    const existingUser = await getUser(email)
+
+    if (existingUser) {
+        const user = {
+            ...existingUser,
+            profile: profileId
+        } 
+
+        await kv.hset(`user:${email}`, user)
+
+        return {
+            type: 'success',
+            resultCode: ResultCode.UserUpdated
+        }
+    } else {
+        return {
+            type: 'error',
+            resultCode: ResultCode.InvalidCredentials
+        }
+    }
 }

@@ -1,6 +1,7 @@
+'use client';
+
 import { Profile } from "@/lib/types";
 
-import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,8 +13,22 @@ import {
 import {
     UserCircleIcon,
 } from '@heroicons/react/24/outline';
+import { setProfile } from "@/app/actions";
 
-export function ProfileMenu({ profiles }: { profiles: Profile[] }) {
+export function ProfileMenu({ email, profiles }: { email: string, profiles: Profile[] }) {
+
+    console.log(profiles)
+
+    async function handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        var target = event.target
+        
+        var index = target.options.selectedIndex - 1
+        var profile = profiles[index]
+        if (profile.id == "default") return
+       
+        await setProfile(email, profile.id)
+    }
+
     return (
         <div className="flex items-center justify-between">
             <DropdownMenu>
@@ -25,8 +40,9 @@ export function ProfileMenu({ profiles }: { profiles: Profile[] }) {
                         className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 dark:border-zinc-800 dark:bg-zinc-950"
                         defaultValue=""
                         aria-describedby="profile-error"
+                        onChange={handleChange}
                     >
-                        <option value="" disabled>
+                        <option value="" disabled >
                             Select a profile
                         </option>
                         {

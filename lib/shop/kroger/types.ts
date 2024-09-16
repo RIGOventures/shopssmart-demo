@@ -17,3 +17,32 @@ export type StoreLocationParams = {
     "filter.lon.near": number,
     "filter.radiusInMiles": number,
 }
+
+export type ProductAvailability = {
+    id?: string,
+    quantity?: number,
+    priceLower: number,
+    priceUpper: number
+}
+
+export interface Product {
+    // Identification
+    upc?: string
+    id: string
+    // Description
+    description: string
+    category?: string
+    price: number
+    size?: number
+    unit?: string
+    brand: string
+    // Preferences
+    priority?: number
+    hotness?: number
+    availability: ProductAvailability[]
+    availableOnline: boolean
+    rating?: string
+    // Links
+    url: string
+    imageUrl: string
+}
