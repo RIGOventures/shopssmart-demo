@@ -46,7 +46,7 @@ export function ProfileCreateDialog({
     useEffect(() => {
         if (result) {
             if (result.type === 'error') {
-                toast.error(getMessageFromCode(result.resultCode))
+                toast.error(result.message || getMessageFromCode(result.resultCode))
             } else {
                 onCreate()
                 router.refresh() // Refresh profile list

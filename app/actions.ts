@@ -208,7 +208,9 @@ export async function getProfile(id: string, userId: string) {
 }
 
 const ProfileSchema = z.object({
-    name: z.string()
+    name: z
+        .string()
+        .min(1, { message: "Profile name is required" })
 });
 
 export async function createProfile(userId: string, prevState: Result | undefined, formData: FormData) {
@@ -219,8 +221,13 @@ export async function createProfile(userId: string, prevState: Result | undefine
     const validatedFields = ProfileSchema.safeParse(rawFormData);
     // If form validation fails, return errors early. Otherwise, continue.
     if (!validatedFields.success) {
+        const { issues } = validatedFields.error
+        const currentIssue = issues.length && issues[0]
+        const { path, message } = currentIssue || {}
+
         return {
             type: 'error',
+            message: message,
             resultCode: ResultCode.InvalidSubmission
         };
     }

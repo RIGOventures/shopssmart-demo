@@ -5,7 +5,9 @@ import Credentials from 'next-auth/providers/credentials';
 
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+
 import { authConfig } from './auth.config';
+
 import { getUser } from './app/login/actions'
 
 const UserSchema = z.object({

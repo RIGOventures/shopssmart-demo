@@ -51,6 +51,7 @@ export async function authenticate(
 		const { email, password } = validatedFields.data;
 	
 		await signIn('credentials', {
+			redirectTo: '/',
 			email,
 			password,
 			redirect: false
@@ -80,5 +81,5 @@ export async function authenticate(
 }
 
 export async function deauthenticate() { 
-	await signOut() 
+	await signOut({ redirectTo: '/' }) 
 }

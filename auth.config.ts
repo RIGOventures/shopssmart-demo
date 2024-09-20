@@ -9,19 +9,6 @@ export const authConfig = {
     callbacks: {
 		authorized({ auth, request: { nextUrl } }) {
 			const isLoggedIn = !!auth?.user
-
-			// Check path name
-			const pathname = nextUrl.pathname
-			const isOnLoginPage = pathname.startsWith('/login')
-			const isOnSignupPage = pathname.startsWith('/signup')
-
-			// Redirect if on the login or signup page
-			if (isLoggedIn) {
-				if (isOnLoginPage || isOnSignupPage) {
-				  return Response.redirect(new URL('/', nextUrl))
-				}
-			}
-		
 			return true
 		},
 

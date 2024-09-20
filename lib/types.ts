@@ -54,6 +54,7 @@ export interface User extends Record<string, any> {
 
 export interface Result {
     type: string;
+    message?: string;
     resultCode: ResultCode
 }
 

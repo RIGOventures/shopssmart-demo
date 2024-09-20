@@ -4,6 +4,9 @@ import { Profile } from "@/lib/types";
 
 import { useRouter } from 'next/navigation'
 
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,6 +19,7 @@ import {
     UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { setProfile } from "@/app/actions";
+import { getProfile } from "@/app/account/actions";
 
 export function ProfileMenu({ email, profiles }: { email: string, profiles: Profile[] }) {
     const router = useRouter()
@@ -36,6 +40,20 @@ export function ProfileMenu({ email, profiles }: { email: string, profiles: Prof
         router.refresh() 
     }
 
+    // Get current preference
+	const { register, handleSubmit, reset } = useForm({
+		defaultValues: {
+            profile: "default"
+        },
+	});
+
+    // Get latest preference
+	useEffect(() => {
+        getProfile(email).then((id: string) => {
+			reset({ profile: id })
+		})
+    }, [email])
+    
     return (
         <div className="flex items-center justify-between">
             <DropdownMenu>
@@ -43,10 +61,10 @@ export function ProfileMenu({ email, profiles }: { email: string, profiles: Prof
                 <div className="relative">
                     <select
                         id="profile"
-                        name="profileId"
                         className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 dark:border-zinc-800 dark:bg-zinc-950"
                         defaultValue=""
                         aria-describedby="profile-error"
+                        {...register("profile")}
                         onChange={handleChange}
                     >
                         <option value="" disabled >

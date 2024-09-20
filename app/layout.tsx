@@ -34,7 +34,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 	return (
 		<html lang="en">
 			<body className={`${inter.className} antialiased`}>
-				<Toaster position="top-center" />
+				<Toaster position="top-center" richColors closeButton />
 				<Providers
 					attribute="class"
 					defaultTheme="system"

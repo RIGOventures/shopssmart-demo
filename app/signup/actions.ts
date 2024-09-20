@@ -79,6 +79,7 @@ export async function signup(
 
         if (result.resultCode === ResultCode.UserCreated) {
             await signIn('credentials', {
+                redirectTo: '/',
                 email,
                 password,
                 redirect: false
