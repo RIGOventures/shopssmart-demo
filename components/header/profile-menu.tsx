@@ -2,6 +2,8 @@
 
 import { Profile } from "@/lib/types";
 
+import { useRouter } from 'next/navigation'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,17 +18,22 @@ import {
 import { setProfile } from "@/app/actions";
 
 export function ProfileMenu({ email, profiles }: { email: string, profiles: Profile[] }) {
+    const router = useRouter()
 
-    console.log(profiles)
-
+    // Handle change to the selected profile
     async function handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
         var target = event.target
-        
         var index = target.options.selectedIndex - 1
+
+        // Get the selected profile
         var profile = profiles[index]
         if (profile.id == "default") return
-       
+
+        // Set profile
         await setProfile(email, profile.id)
+
+        // Refresh selected profile
+        router.refresh() 
     }
 
     return (

@@ -16,7 +16,7 @@ import { nanoid } from '@/lib/utils/nanoid'
 
 import { saveChat } from '@/app/actions'
 import { submitMessage } from '@/lib/actions'
-import { getPreferences } from '@/app/account/actions'
+import { getPreferences, getProfile } from '@/app/account/actions'
 
 import { createAI, getAIState } from 'ai/rsc'
 
@@ -28,7 +28,10 @@ async function submitUserMessage(message: string) {
     const session = await auth()
 
     if (session && session.user) {
-        const pref = await getPreferences(session.user!.email!) // Get user
+        // Get the selected profile
+        const profile = await getProfile(session.user!.email!)
+        // Get preferences on that profile
+        const pref = await getPreferences(profile) 
         if (pref) {
             return submitMessage(message, pref)
         }

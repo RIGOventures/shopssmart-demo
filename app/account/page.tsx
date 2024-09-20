@@ -1,4 +1,4 @@
-import { Profile, Session } from '@/lib/types'
+import { Session } from '@/lib/types'
 
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
@@ -18,8 +18,6 @@ export default async function Page() {
         redirect(`/`)
     }
 
-    console.log(profile)
-    
     return (
         <div
             className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"

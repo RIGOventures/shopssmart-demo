@@ -1,7 +1,9 @@
 'use client'
 
-import { Result, ServerActionResult, Session } from '@/lib/types'
+import { Result, Session } from '@/lib/types'
 import { type DialogProps } from '@radix-ui/react-dialog'
+
+import { useRouter } from 'next/navigation'
 
 import { useEffect, useTransition, useCallback } from 'react';
 import { useFormState } from 'react-dom'
@@ -32,7 +34,8 @@ export function ProfileCreateDialog({
     onCreate,
     ...props
 }: ProfileCreateDialogProps) {
- 
+    const router = useRouter()
+
     const [isCreatePending, startCreateTransition] = useTransition()
 
     // Augment submit aciton
@@ -45,8 +48,10 @@ export function ProfileCreateDialog({
             if (result.type === 'error') {
                 toast.error(getMessageFromCode(result.resultCode))
             } else {
-                toast.success(getMessageFromCode(result.resultCode))
                 onCreate()
+                router.refresh() // Refresh profile list
+
+                toast.success(getMessageFromCode(result.resultCode))
             }
         }
     }, [result])
@@ -69,7 +74,9 @@ export function ProfileCreateDialog({
                     <form 
                         action={formAction} 
                         className="w-full flex justify-between"
-                        onSubmit={() => {
+                        onSubmit={event => {
+                            //event.preventDefault()
+                            // @ts-ignore
                             startCreateTransition(async () => {
                                 // Purely aesthetic
                                 await new Promise(resolve => setTimeout(resolve, 1000));

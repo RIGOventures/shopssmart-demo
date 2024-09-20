@@ -43,7 +43,6 @@ export async function updatePreferences(profileId: string, prevState: Result | u
         health: health,
     } 
 
-    console.log(preferences)
     await kv.hset(`profile:${profileId}:preferences`, preferences)
 
     return {

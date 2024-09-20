@@ -33,20 +33,23 @@ const allergyTypes = [
     'Dairy'
 ];
 
-interface Props {
-    profileId?: string
+const defaultPreferences = {
+	lifestyle: '', 
+	allergen: '', 
+	health: '', 
 }
 
-export default function EditAccountForm({ profileId }: Props) {
+interface Props {
+    profileId?: string,
+	currentPreferences?: Preferences 
+}
+
+export default function EditAccountForm({ profileId, currentPreferences }: Props) {
 	const router = useRouter()
 
 	// Get current preference
 	const { register, handleSubmit, reset } = useForm<Preferences>({
-		defaultValues: {
-			lifestyle: '', 
-			allergen: '', 
-			health: '', 
-		},
+		defaultValues: currentPreferences || defaultPreferences,
 	});
 
 	// Augment submit aciton
@@ -60,6 +63,7 @@ export default function EditAccountForm({ profileId }: Props) {
                 toast.error(getMessageFromCode(result.resultCode))
             } else {
                 toast.success(getMessageFromCode(result.resultCode))
+				router.refresh()
                 router.push("/")
             }
         }
@@ -69,6 +73,7 @@ export default function EditAccountForm({ profileId }: Props) {
 	useEffect(() => {
         getPreferences(profileId).then((res: Preferences | null) => {
 			if (res) reset(res)
+			else reset(defaultPreferences)
 		})
     }, [reset, profileId])
 
