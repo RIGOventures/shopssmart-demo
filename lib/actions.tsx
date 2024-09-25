@@ -161,7 +161,7 @@ export async function submitMessage(message: string, preferences: {}) {
         // Apply rate limit middleware
         const rateLimitResult = await rateLimit(userIP);
         if (rateLimitResult) {
-            //return rateLimitResult;
+            return rateLimitResult;
         }
     } catch (error) {
 
