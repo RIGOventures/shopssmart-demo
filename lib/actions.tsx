@@ -10,14 +10,13 @@ import { JSONClient } from 'google-auth-library/build/src/auth/googleauth'
 
 type Client = JSONClient & { scopes: string | [string] }
 
+import { AxiosError } from 'axios'
+
 import { auth } from 'google-auth-library';
 
 import { headers } from 'next/headers'
 
-import { AxiosError } from 'axios'
-
 import { createVertex } from '@ai-sdk/google-vertex'
-
 import {
     getMutableAIState,
     streamUI,
@@ -101,9 +100,6 @@ export async function submitPrompt(aiState: any, value: string, preferences: Pre
 
                 // Get choice
                 const [, description, reason ] = content.match(/\s*(.*?)\n\s*(.*)/) || [];
-                
-                //console.log(product)
-
                 // Call on finish here
                 onFinish(content)
 
