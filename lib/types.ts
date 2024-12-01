@@ -1,19 +1,19 @@
 // This file contains type definitions for data.
 // It describes the shape of the data, and what data type each property should accept.
 
-import { CoreMessage } from 'ai'
+import { CoreMessage, CreateMessage } from 'ai'
 import { ResultCode } from '@/lib/utils/result'
 
 /**
-type CoreUserMessage = {
+type CoreMessage = {
     role: string;
     content: UserContent;
 };
 */
 
-export type Message = CoreMessage & {
+export type Message = CoreMessage  & {
     id: string
-}
+} | CreateMessage
 
 export interface Log extends Record<string, any> {
     id: string

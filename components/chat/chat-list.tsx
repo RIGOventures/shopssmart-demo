@@ -1,25 +1,27 @@
 'use client'
 
-import { Session } from '@/lib/types'
+import { Message, Session } from '@/lib/types'
 
 import Link from 'next/link'
 
-import { UIState } from '@/lib/services/ai-state'
-
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { SpinnerMessage, BotMessage, UserMessage } from '@/components/chat/message'
 import { Separator } from '@/components/ui/separator'
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 
 export interface ChatList {
-    messages: UIState
+    messages: Message[]
     session?: Session
     isShared: boolean
+    isLoading: boolean
 }
 
-export function ChatList({ messages, session, isShared }: ChatList) {
+export function ChatList({ messages, session, isShared, isLoading }: ChatList) {
     if (!messages.length) {
         return null
     }
 
+    const uiMessages = convertToUIMessages(messages)
+    
     return (
         <div className="relative mx-auto max-w-2xl px-4">
             {
@@ -49,13 +51,42 @@ export function ChatList({ messages, session, isShared }: ChatList) {
             }
 
             {
-                messages.map((message, index) => (
+                uiMessages.map((message, index: number) => (
                     <div key={message.id}>
-                        {message.display}
+                        <div>{message.display}</div>
                         {index < messages.length - 1 && <Separator className="my-4" />}
                     </div>
                 ))
             }
+
+            {isLoading &&
+                messages.length > 0 &&
+                messages[messages.length - 1].role === 'user' && (
+                    <div>
+                        <Separator className="my-4" />
+                        <SpinnerMessage />
+                    </div>
+                )
+            }
+
         </div>
     )
+}
+
+export const convertToUIMessages = (messages: Message[]) => {
+    return messages
+        .filter((message: Message) => message.role !== 'system')
+        .map((message: Message, index: number) => (
+            {
+                id: message.content,
+                display:
+                    message.role === 'user' ? (
+                        <UserMessage>
+                            {message.content as string}
+                        </UserMessage>
+                    ) : message.role === 'assistant' && typeof message.content === 'string' ? (
+                        <BotMessage content={message.content} />
+                    ) : null
+            }
+        ))
 }

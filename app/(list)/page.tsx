@@ -1,11 +1,11 @@
 import { Session } from '@/lib/types'
 
-import { nanoid } from '@/lib/utils/nanoid'
+import { generateId } from 'ai';
+
 import { auth } from '@/auth'
 
 import { getMissingKeys } from '@/lib/utils/env-auth'
 
-import { AI } from '@/lib/services/ai-state'
 import { Chat } from '@/components/chat'
 
 export const metadata = {
@@ -13,17 +13,13 @@ export const metadata = {
 }
 
 export default async function Page() {
-    const id = nanoid()
+    const id = generateId()
     const session = (await auth()) as Session
     const missingKeys = await getMissingKeys()
 
-    return (
-        <AI initialAIState={{ chatId: id, messages: [] }}>
-            <Chat 
-                id={id} 
-                session={session} 
-                missingKeys={missingKeys} 
-            />
-        </AI>
-    )
+    return <Chat 
+        id={id} 
+        session={session} 
+        missingKeys={missingKeys} 
+    />
 }

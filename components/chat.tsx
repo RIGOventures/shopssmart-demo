@@ -4,9 +4,13 @@ import { Message, Session } from '@/lib/types'
 
 import { cn } from '@/lib/utils/style'
 
-import { useEffect, useState } from 'react'
-import { useUIState } from 'ai/rsc'
+import { useRouter } from 'next/navigation'
+
+import { useEffect, useTransition } from 'react'
+import { useChat } from 'ai/react'
 import { toast } from 'sonner'
+
+import { getMessageFromCode } from '@/lib/utils/result'
 
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
@@ -22,9 +26,47 @@ export interface ChatProps extends React.ComponentProps<'div'> {
     missingKeys: string[]
 }
 
-export function Chat({ id, className, session, missingKeys }: ChatProps) {
-    const [input, setInput] = useState('')
-    const [messages] = useUIState()
+export function Chat({ id, initialMessages, session, missingKeys, className }: ChatProps) {
+
+    const router = useRouter()
+    const [isPending, startTransition] = useTransition();
+
+    const { messages, setMessages, input, setInput, append, isLoading } = useChat({ 
+        id, 
+        initialMessages,
+        onResponse: (response: Response) => {
+            console.log(response)
+
+            if (response.type === 'error') {
+				//toast.error(getMessageFromCode(response.resultCode))
+			}
+        },
+        onFinish: (message) => {
+            let pathname = window.location.pathname
+            if (pathname == "/") {
+                startTransition(() => {
+                    // Move to the new chat
+                    let path = `list/${id}`
+                    window.history.replaceState({}, '', path)
+
+                    // Refresh the page
+                    location.reload();
+                })
+            }
+        }
+    });
+
+
+    // Wrap the submit handler to pass the chatId
+    const appendWithId = async (input: string, subOptions?: {}) => {
+		const chatOptions = { body: { chatId: id } }
+        const options = Object.assign({}, chatOptions, subOptions);
+
+        return await append({
+            role: 'user',
+            content: input
+        }, options)
+	}
 
     const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
@@ -53,7 +95,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
             >
                 {
                     messages.length ? (
-                        <ChatList messages={messages} isShared={false} session={session} />
+                        <ChatList messages={messages} isLoading={isLoading} isShared={false} session={session} />
                     ) : (
                         <EmptyScreen />
                     )
@@ -62,9 +104,10 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
             </div>
 
             <ChatPanel
-                id={id}
                 input={input}
                 setInput={setInput}
+                append={appendWithId}
+                setMessages={setMessages}
                 isAtBottom={isAtBottom}
                 scrollToBottom={scrollToBottom}
             />

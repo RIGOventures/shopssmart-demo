@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils/style'
 
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import { StreamableValue, useStreamableValue } from 'ai/rsc'
+import { StreamableValue } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 
 import { spinner } from '../ui/spinner'
@@ -57,41 +57,6 @@ export function BotMessage({
     )
 }
 
-export function BotCard({
-    children,
-    showAvatar = true
-}: {
-    children: React.ReactNode
-    showAvatar?: boolean
-}) {
-    return (
-        <div className="group relative flex items-start md:-ml-12">
-            <div
-                className={cn(
-                    'flex size-[24px] shrink-0 select-none items-center justify-center rounded-md border bg-primary text-primary-foreground shadow-sm',
-                    !showAvatar && 'invisible'
-                )}
-            >
-                <QuestionMarkCircleIcon />
-            </div>
-            <div className="ml-4 flex-1 pl-2">
-                {children}
-            </div>
-        </div>
-    )
-}
-
-export function SystemMessage({ children }: { children: React.ReactNode }) {
-    return (
-        <div
-            className={
-                'mt-2 flex items-center justify-center gap-2 text-xs text-gray-500'
-            }
-        >
-            <div className={'max-w-[600px] flex-initial p-2'}>{children}</div>
-        </div>
-    )
-}
 
 export function SpinnerMessage() {
     return (

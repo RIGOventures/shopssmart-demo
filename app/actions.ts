@@ -2,13 +2,13 @@
 
 import { Log, Chat, Profile, Result } from '@/lib/types'
 
+import { generateId } from 'ai';
+
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
-
-import { nanoid } from '@/lib/utils/nanoid'
 
 import { auth } from '@/auth'
 import { getUser } from './login/actions'
@@ -235,7 +235,7 @@ export async function createProfile(userId: string, prevState: Result | undefine
     const { name } = validatedFields.data;
 
     const profile: Profile = {
-        id: nanoid(),
+        id: generateId(),
         userId,
         name
     }
