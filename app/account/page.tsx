@@ -3,7 +3,7 @@ import { Session } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 
-import { getProfile } from './actions';
+import { getProfileForUser } from '../actions';
 
 import EditAccountForm from "@/components/input/account-form";
 
@@ -13,7 +13,7 @@ export default async function Page() {
         redirect(`/`)
     }
 
-    const profile = (await getProfile(session.user.email))
+    const profile = (await getProfileForUser(session.user.email))
     if (!profile) {
         redirect(`/`)
     }

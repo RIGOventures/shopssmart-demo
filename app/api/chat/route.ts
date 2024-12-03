@@ -19,7 +19,7 @@ import { rateLimit } from '@/lib/services/rate-limit'
 
 import { streamText, convertToCoreMessages, generateId } from 'ai';
 
-import { getPreferences, getProfile } from '@/app/account/actions'
+import { getPreferences, getProfileForUser } from '@/app/account/actions'
 import { saveChat } from '@/app/actions'
 
 // Create Google gemini model
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     let preferences = {}
     if (session && session.user) {
         // Get the selected profile
-        const profile = await getProfile(session.user!.email!)
+        const profile = await getProfileForUser(session.user!.email!)
         // Get preferences on that profile
         preferences = await getPreferences(profile) || {}
     }

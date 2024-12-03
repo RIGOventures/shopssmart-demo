@@ -18,8 +18,7 @@ import {
 import {
     UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import { setProfile } from "@/app/actions";
-import { getProfile } from "@/app/account/actions";
+import { setProfileForUser, getProfileForUser } from "@/app/actions";
 
 export function ProfileMenu({ email, profiles }: { email: string, profiles: Profile[] }) {
     const router = useRouter()
@@ -34,7 +33,7 @@ export function ProfileMenu({ email, profiles }: { email: string, profiles: Prof
         if (profile.id == "default") return
 
         // Set profile
-        await setProfile(email, profile.id)
+        await setProfileForUser(email, profile.id)
 
         // Refresh selected profile
         router.refresh() 
@@ -49,7 +48,7 @@ export function ProfileMenu({ email, profiles }: { email: string, profiles: Prof
 
     // Get latest preference
 	useEffect(() => {
-        getProfile(email).then((id: string) => {
+        getProfileForUser(email).then((id: string) => {
 			reset({ profile: id })
 		})
     }, [email])

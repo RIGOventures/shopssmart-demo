@@ -6,13 +6,6 @@ import { ResultCode } from '@/lib/utils/result'
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
 
-import { getUser } from '../login/actions';
-
-export async function getProfile(email: string) {
-    const existingUser = await getUser(email)
-    return existingUser?.profile || 'default'
-}
-
 const UpdateSchema = z.object({
     lifestyle: z.string().nullable(),
     allergen: z.string().nullable(),

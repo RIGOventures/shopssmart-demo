@@ -8,6 +8,9 @@ import { useForm } from 'react-hook-form';
 
 import { useRouter } from 'next/navigation'
 
+import allergyTypes from '@/lib/registry/allergies'
+import dietPlanTypes from '@/lib/registry/dietPlans'
+
 import { getMessageFromCode } from '@/lib/utils/result'
 
 import { getPreferences, updatePreferences } from '@/app/account/actions';
@@ -20,18 +23,6 @@ import {
 	HeartIcon,
 	UserCircleIcon,
 } from '@heroicons/react/24/outline';
-
-const dietPlanTypes = [
-    'Vegan',
-    'Ketogenic',
-    'Low-carb',
-    'Mediterranean'
-];
-
-const allergyTypes = [
-    'Nuts',
-    'Dairy'
-];
 
 const defaultPreferences = {
 	lifestyle: '', 

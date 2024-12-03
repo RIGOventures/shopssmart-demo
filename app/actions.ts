@@ -14,10 +14,6 @@ import { auth } from '@/auth'
 import { getUser } from './login/actions'
 import { ResultCode } from '@/lib/utils/result'
 
-export async function refreshHistory(path: string) {
-    redirect(path)
-}
-
 async function createRecord(tag: string, record: Log) {
     const session = await auth()
 
@@ -252,7 +248,11 @@ export async function deleteProfile(id: string) {
     return deleteRecord('profile', id)
 }
 
-export async function setProfile(email: string, profileId: string) {
+/**
+ * Profile relational actions
+ */
+
+export async function setProfileForUser(email: string, profileId: string) {
     const existingUser = await getUser(email)
 
     if (existingUser) {
@@ -273,4 +273,9 @@ export async function setProfile(email: string, profileId: string) {
             resultCode: ResultCode.InvalidCredentials
         }
     }
+}
+
+export async function getProfileForUser(email: string) {
+    const existingUser = await getUser(email)
+    return existingUser?.profile || 'default'
 }
