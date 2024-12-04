@@ -7,6 +7,6 @@ export default defineConfig({
     plugins: [tsconfigPaths(), react()],
     test: {
         environment: 'jsdom',
-		env: loadEnv('test', process.cwd(), ''),
+		env: loadEnv('test.local', process.cwd(), ''),
     },
 })
