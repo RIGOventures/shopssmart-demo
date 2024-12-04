@@ -19,13 +19,13 @@ import { rateLimit } from '@/lib/services/rate-limit'
 
 import { streamText, convertToCoreMessages, generateId } from 'ai';
 
-import { getPreferences, getProfileForUser } from '@/app/account/actions'
+import { getProfileForUser } from '@/app/actions'
+import { getPreferences } from '@/app/account/actions'
 import { saveChat } from '@/app/actions'
 
 // Create Google gemini model
 let model: any //: LanguageModelV1;
 
-/*
 getGCPCredentials().then((credentials: any) => {
     // Create client
     const client = googleAuth.fromJSON(credentials) as Client;
@@ -41,9 +41,6 @@ getGCPCredentials().then((credentials: any) => {
         ],
     });
 })
-*/
-
-model = openai('gpt-4-turbo')
 
 // Create instruction
 const modelInstruction = createInstruction();

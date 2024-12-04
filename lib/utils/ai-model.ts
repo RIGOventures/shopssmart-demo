@@ -29,7 +29,7 @@ export function createPrompt(
     selectedCategories?: string, 
 	specificDescriptors?: string,
 ) {
-    let fullSearchCriteria = `Suggest a grocery. `
+    let fullSearchCriteria = `Suggest a grocery of type ${groceryType}. `
     + `${
             selectedCategories ? 
             `Make sure that is fits all of the following categories: ${selectedCategories}. ` : 
