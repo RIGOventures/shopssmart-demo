@@ -13,4 +13,8 @@ For example:
 
 Then, run the application in the command line and it will be available at http://localhost:3000.
 
-`npm run dev`
+`pnpm run dev`
+
+# Testing
+
+Create a `.env.test.local` file based on `.env` and change the keys based on the testing environment you are trying to create.
